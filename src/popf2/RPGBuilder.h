@@ -977,7 +977,6 @@ protected:
     static vector<list<int> > mentionedInFluentInvariants;
 
     static list<FakeTILAction> timedInitialLiterals;
-    static vector<FakeTILAction*> timedInitialLiteralsVector;
 
     static list<FakeTILAction> optimisationTimedInitialLiterals;
     static vector<FakeTILAction*> optimisationTimedInitialLiteralsVector;
@@ -1121,7 +1120,8 @@ protected:
 
 public:
 
-
+    
+    static vector<FakeTILAction*> timedInitialLiteralsVector;
     static pair<bool, bool> & isStatic(Literal* l);
 
     static void simplify(pair<list<double>, list<int> > & s);
@@ -1235,6 +1235,10 @@ public:
     static vector<list<Literal*> > & getProcessedStartNegativePropositionalPreconditions() {
         return actionsToProcessedStartNegativePreconditions;
     };
+    
+    static vector<list<NumericEffect> > & getActionsToEndNumericEffects() {
+        return actionsToEndNumericEffects;
+    }
 
     /** @return A reference to <code>rpgNumericPreconditions</code>, the preconditions used in the problem, in LNF. */
     static vector<RPGNumericPrecondition> & getNumericPreTable() {
@@ -1346,6 +1350,12 @@ public:
     static void getNonStaticInitialState(LiteralSet & initialState, vector<double> & initialFluents);
     static instantiatedOp* getInstantiatedOp(const int & i) {
         return instantiatedOps[i];
+    };
+    static int getInstantiatedOpCount() {
+        return instantiatedOps.size();
+    }
+    static vector<pair<bool, bool> > getStaticLiterals() {
+        return staticLiterals;
     };
     static Literal* getLiteral(const int & i) {
         return literals[i];

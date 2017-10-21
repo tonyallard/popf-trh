@@ -9,6 +9,9 @@ set( CMAKE_MODULE_PATH    ${CMAKE_MODULE_PATH}
 set(DOXYFILE_TARGET_SUFFIX popf)
 include(UseDoxygen OPTIONAL)
 
+add_subdirectory(util)
+add_subdirectory(pddl)
+add_subdirectory(TRH)
 
 #IF(NOT DISABLE_CLP)
 find_package(Clp)
@@ -21,6 +24,7 @@ find_package(OSI)
 include_directories(${val_SOURCE_DIR} ${val_SOURCE_DIR}/parsing ${val_BINARY_DIR} ${CLP_INCLUDES}/coin ${CBC_INCLUDES}/coin ${CPLEX_INCLUDES} ${CONCERT_INCLUDES})
 
 set(popf2_build_srcs
+    HTrio.cpp
     compressionsafescheduler.cpp
     totalordertransformer.cpp
     partialordertransformer.cpp
@@ -39,14 +43,14 @@ set(popf2_build_srcs
     solver.cpp)
 
 add_library(POPF2Common STATIC ${popf2_build_srcs})
-target_link_libraries(POPF2Common ParsePDDL Inst)
+target_link_libraries(POPF2Common ParsePDDL Inst UTIL PDDL TRH)
 
 add_library(POPF3Common STATIC ${popf2_build_srcs})
-target_link_libraries(POPF3Common ParsePDDL Inst)
+target_link_libraries(POPF3Common ParsePDDL Inst UTIL PDDL TRH)
 SET_TARGET_PROPERTIES(POPF3Common PROPERTIES COMPILE_FLAGS "-DPOPF3ANALYSIS")
 
 add_library(StochasticPOPF2Common STATIC ${popf2_build_srcs} StochasticDurations.cpp)
-target_link_libraries(StochasticPOPF2Common ParsePDDL Inst)
+target_link_libraries(StochasticPOPF2Common ParsePDDL Inst UTIL PDDL TRH)
 SET_TARGET_PROPERTIES(StochasticPOPF2Common PROPERTIES COMPILE_FLAGS "-DSTOCHASTICDURATIONS -DPOPF3ANALYSIS")
 
 #if((NOT DISABLE_CLP) AND CLP_INCLUDES)
