@@ -26,16 +26,17 @@ const std::string PDDLStateFactory::DEFAULT_METRIC_PNE = "total-time";
 
 PDDLStateFactory::PDDLStateFactory(const Planner::MinimalState &initialState,
 		std::list<std::pair<std::string, std::string> > constants) {
-	cout << "Address of SecondMin in PDDLStateFac: " << &(initialState.secondMin) << endl; 
-	cout << "Size: in PDDLStateFactory Const " << initialState.secondMin.size() << endl;
-	cout << "Address in PDDLStateFactory Const " << &initialState << endl;
+    cout << "2(PDDLStateFactory.cpp:29): Address of minimalState: " << &initialState << endl;
+    std::cout << "2(PDDLStateFactory.cpp:30): Address of SecondMin: " << &initialState.secondMin << std::endl;
+    cout << "2(PDDLStateFactory.cpp:31): Size of SecondMin: " << initialState.secondMin.size() << endl;
 	this->constants = constants;
 	std::list<PDDL::Proposition> stdPropositions = getPropositions(initialState,
 			objectParameterTable);
 	staticPropositions = getStaticPropositions(stdPropositions,
 			objectParameterTable);
-	cout << "Address in PDDLStateFactory Const " << &initialState << endl;
-	cout << "Size: in PDDLStateFactory Const " << initialState.secondMin.size() << endl;
+    cout << "3(PDDLStateFactory.cpp:37): Address of minimalState: " << &initialState << endl;
+    std::cout << "3(PDDLStateFactory.cpp:38): Address of SecondMin: " << &initialState.secondMin << std::endl;
+    cout << "3(PDDLStateFactory.cpp:39): Size of SecondMin: " << initialState.secondMin.size() << endl;
 	std::list<PDDL::PNE> stdPNEs = getPNEs(initialState, objectParameterTable);
 	staticPNEs = getStaticPNEs(stdPNEs, objectParameterTable);
 	goals = getPropositionalGoals(objectParameterTable);

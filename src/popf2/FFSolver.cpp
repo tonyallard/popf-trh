@@ -5052,9 +5052,9 @@ Solution FF::search(bool & reachedGoal)
         }
         
     }
-    std::cout << "Address of SecondMin in FFSolver: " << &initialState.getInnerState().secondMin << std::endl;
-    cout << "Address in FFSolver " << &initialState.getInnerState() << endl;
-    cout << "Size in FFSolver: " << initialState.getInnerState().secondMin.size() << endl;
+    cout << "1(FFSolver.cpp:5055): Address of minimalState: " << &initialState.getInnerState() << endl;
+    std::cout << "1(FFSolver.cpp:5056): Address of SecondMin: " << &initialState.getInnerState().secondMin << std::endl;
+    cout << "1(FFSolver.cpp:5057): Size of SecondMin: " << initialState.getInnerState().secondMin.size() << endl;
     //Setup PDDL Factory
     // const MinimalState mm = initialState.getInnerState();
     PDDL::PDDLStateFactory pddlFactory(initialState.getInnerState(), PDDL::PDDLDomainFactory::getInstance()->getConstants());
