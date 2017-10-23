@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDL_METRIC_H_
-#define COLIN_PDDL_METRIC_H_
+#ifndef __PDDL_METRIC
+#define __PDDL_METRIC
 
 #include <iostream>
 #include <string>
@@ -27,4 +27,4 @@ public:
 }
 
 
-#endif /* COLIN_PDDL_METRIC_H_ */
+#endif /* __PDDL_METRIC */

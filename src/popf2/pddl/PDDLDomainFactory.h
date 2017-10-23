@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDL_PDDLDOMAINFACTORY_H_
-#define COLIN_PDDL_PDDLDOMAINFACTORY_H_
+#ifndef __PDDL_PDDLDOMAINFACTORY
+#define __PDDL_PDDLDOMAINFACTORY
 
 #include "Proposition.h"
 #include "TIL.h"
@@ -107,4 +107,4 @@ public:
 };
 }
 
-#endif /* COLIN_PDDL_PDDLDOMAINFACTORY_H_ */
+#endif /* __PDDL_PDDLDOMAINFACTORY */

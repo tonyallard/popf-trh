@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDL_PENDINGACTION_H_
-#define COLIN_PDDL_PENDINGACTION_H_
+#ifndef __PDDL_PENDINGACTION
+#define __PDDL_PENDINGACTION
 
 #include <string>
 #include <iostream>
@@ -64,4 +64,4 @@ public:
 
 }
 
-#endif /* COLIN_PDDL_PENDINGACTION_H_ */
+#endif /* __PDDL_PENDINGACTION */

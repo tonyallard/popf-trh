@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDLSTATE_H_
-#define COLIN_PDDLSTATE_H_
+#ifndef __PDDLSTATE
+#define __PDDLSTATE
 
 #include <string>
 #include <list>
@@ -62,4 +62,4 @@ public:
 
 }
 
-#endif /* COLIN_PDDLSTATE_H_ */
+#endif /* __PDDLSTATE */

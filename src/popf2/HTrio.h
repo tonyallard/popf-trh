@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_HTRIO_H_
-#define COLIN_HTRIO_H_
+#ifndef __HTRIO
+#define __HTRIO
 
 namespace Planner {
 
@@ -37,4 +37,4 @@ class HTrio
 	};
 
 }
-#endif /* COLIN_HTRIO_H_ */
+#endif /* __HTRIO */

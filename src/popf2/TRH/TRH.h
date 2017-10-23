@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_TRH_TRH_H_
-#define COLIN_TRH_TRH_H_
+#ifndef __TRH_TRH
+#define __TRH_TRH
 
 #include <list>
 
@@ -90,4 +90,4 @@ public:
 };
 }
 
-#endif /* COLIN_TRH_TRH_H_ */
+#endif /* __TRH_TRH */

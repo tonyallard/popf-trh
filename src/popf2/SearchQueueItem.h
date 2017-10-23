@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_SEARCHQUEUEITEM_H_
-#define COLIN_SEARCHQUEUEITEM_H_
+#ifndef __SEARCHQUEUEITEM
+#define __SEARCHQUEUEITEM
 
 #include <list>
 
@@ -112,4 +112,4 @@ public:
 
 }
 
-#endif /* COLIN_SEARCHQUEUEITEM_H_ */
+#endif /* __SEARCHQUEUEITEM */

@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDL_PNEFACTORY_H_
-#define COLIN_PDDL_PNEFACTORY_H_
+#ifndef __PDDL_PNEFACTORY
+#define __PDDL_PNEFACTORY
 
 #include <string>
 #include <list>
@@ -50,4 +50,4 @@ private:
 
 }
 
-#endif /* COLIN_PDDL_PNEFACTORY_H_ */
+#endif /* __PDDL_PNEFACTORY */

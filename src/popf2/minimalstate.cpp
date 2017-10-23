@@ -185,6 +185,9 @@ void MinimalState::setFacts(const LiteralSet & f)
 
 void MinimalState::setFacts(const vector<double> & f)
 {
+    cout << "setting vector double facts" << endl;
+    cout << "Address of f " << &f << endl;
+    cout << "size of f" << f.size() << endl;
     secondMin = f;
     secondMax = f;
 }
@@ -200,7 +203,15 @@ MinimalState::MinimalState(const MinimalState & other, const int extendBy)
         secondMin(other.secondMin), secondMax(other.secondMax), startedActions(other.startedActions),
         planLength(other.planLength), actionsExecuting(other.actionsExecuting), nextTIL(other.nextTIL), temporalConstraints(globalTransformer->cloneTemporalConstraints(other.temporalConstraints, extendBy))
 {
-    
+    cout << "COPY CONST CALLED" << endl;
+
+    std::cout << "Address of SecondMin in copyconst: " << &other.secondMin << std::endl;
+    cout << "Address in copyconst " << &other << endl;
+    cout << "Size in copyconst: " << other.secondMin.size() << endl;
+    cout << "-------------" << endl;
+    std::cout << "Address of copy SecondMin in copyconst: " << &secondMin << std::endl;
+    cout << "copy Address in copyconst " << this << endl;
+    cout << "copy Size in copyconst: " << secondMin.size() << endl;
     #ifdef STOCHASTICDURATIONS
     copyGoalStepRecords(other.stepFromWhichLiteralGoalsHold, other.stepsFromWhichNumericGoalsHold);
     #endif        
@@ -209,6 +220,8 @@ MinimalState::MinimalState(const MinimalState & other, const int extendBy)
 MinimalState::MinimalState()
     : planLength(0), actionsExecuting(0), nextTIL(0), temporalConstraints(globalTransformer->emptyTemporalConstraints())
 {
+    cout << "DEFAULT CONST CALLED" << endl;
+    secondMin = vector<double>();
     #ifdef STOCHASTICDURATIONS
     stepFromWhichLiteralGoalsHold = 0;
     stepsFromWhichNumericGoalsHold = 0;
@@ -217,6 +230,7 @@ MinimalState::MinimalState()
 
 MinimalState::~MinimalState()
 {
+    cout << "DESTRUCTOR CALLED!!!" << endl;
     delete temporalConstraints;
     #ifdef STOCHASTICDURATIONS
     deleteGoalStepRecords();        
@@ -225,6 +239,7 @@ MinimalState::~MinimalState()
 
 MinimalState & MinimalState::operator =(const MinimalState & other)
 {
+    cout << "SET OPERATOR CONST CALLED" << endl;
     #ifdef TOTALORDERSTATES
     first = other.first;
     invariants = other.invariants;

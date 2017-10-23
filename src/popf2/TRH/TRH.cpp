@@ -60,6 +60,8 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 
 	const Planner::MinimalState & state = theState.getInnerState();
 
+        cout << "Address After " << &state << endl;
+
 	Planner::FF::STATES_EVALUATED++;
 	string stateName = writeTempState(state, header, timestamp, heuristic, pddlFactory);
 

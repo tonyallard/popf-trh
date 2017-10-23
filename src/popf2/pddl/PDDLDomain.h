@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDLDOMAIN_H_
-#define COLIN_PDDLDOMAIN_H_
+#ifndef __PDDLDOMAIN
+#define __PDDLDOMAIN
 
 #include <string>
 #include <list>
@@ -84,4 +84,4 @@ public:
 
 }
 
-#endif /* COLIN_PDDLDOMAIN_H_ */
+#endif /* __PDDLDOMAIN */

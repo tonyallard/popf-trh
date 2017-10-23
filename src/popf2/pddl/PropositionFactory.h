@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PROPOSITIONFACTORY_H_
-#define COLIN_PROPOSITIONFACTORY_H_
+#ifndef __PROPOSITIONFACTORY
+#define __PROPOSITIONFACTORY
 
 #include <string>
 #include <list>
@@ -70,4 +70,4 @@ private:
 
 }
 
-#endif /* COLIN_PROPOSITIONFACTORY_H_ */
+#endif /* __PROPOSITIONFACTORY */

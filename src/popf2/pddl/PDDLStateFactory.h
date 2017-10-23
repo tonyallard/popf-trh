@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDLSTATEFACTORY_H_
-#define COLIN_PDDLSTATEFACTORY_H_
+#ifndef __PDDLSTATEFACTORY
+#define __PDDLSTATEFACTORY
 
 #include <list>
 #include <set>
@@ -24,7 +24,7 @@ namespace PDDL {
 class PDDLStateFactory {
 public:
 
-	PDDLStateFactory(const Planner::MinimalState & initialState, std::list<std::pair<std::string, std::string> > constants);
+	PDDLStateFactory(const Planner::MinimalState &initialState, std::list<std::pair<std::string, std::string> > constants);
 
 	// PDDLState getPDDLState(const Planner::MinimalState & state,
 	// 		std::list<Planner::FFEvent>& plan, double timestamp,
@@ -71,4 +71,4 @@ private:
 
 }
 
-#endif /* COLIN_PDDLSTATEFACTORY_H_ */
+#endif /* __PDDLSTATEFACTORY */

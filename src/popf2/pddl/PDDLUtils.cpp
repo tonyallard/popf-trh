@@ -543,6 +543,8 @@ std::string getActionName(int actionNum) {
 	std::ostringstream output;
 	Inst::instantiatedOp* action = Planner::RPGBuilder::getInstantiatedOp(
 			actionNum);
+	cout << "Action: " << action << endl;
+	cout.flush();
 	output << action->getHead()->getName();
 	VAL::var_symbol_list::const_iterator paramItr =
 			action->forOp()->parameters->begin();
@@ -551,6 +553,7 @@ std::string getActionName(int actionNum) {
 	for (; paramItr != paramItrEnd; paramItr++) {
 		output << "-" << ((*action->getEnv())[*paramItr])->getName();
 	}
+	cout << output.str() << endl;
 	return output.str();
 }
 
@@ -569,8 +572,7 @@ bool supported(const PDDL::Proposition * proposition,
 
 bool isTILAction(std::string eventName, int minDur, int maxDur) {
 
-	int found = eventName.substr(0, TIL_ACTION_PREFIX.size()).find(
-				TIL_ACTION_PREFIX);
+	int found = eventName.find(TIL_ACTION_PREFIX);
 	return ((found == 0) && (minDur == 0) && (maxDur == 0));
 }
 

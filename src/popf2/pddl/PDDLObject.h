@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDL_PDDLOBJECT_H_
-#define COLIN_PDDL_PDDLOBJECT_H_
+#ifndef __PDDL_PDDLOBJECT
+#define __PDDL_PDDLOBJECT
 
 #include <iostream>
 #include <string>
@@ -32,4 +32,4 @@ public:
 }
 
 
-#endif /* COLIN_PDDL_PDDLOBJECT_H_ */
+#endif /* __PDDL_PDDLOBJECT */

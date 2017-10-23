@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_UTIL_UTIL_H_
-#define COLIN_UTIL_UTIL_H_
+#ifndef __UTIL_UTIL
+#define __UTIL_UTIL
 
 namespace Util {
 
@@ -61,4 +61,4 @@ struct triple {
 bool isDouble(const char* str);
 
 }
-#endif /* COLIN_UTIL_UTIL_H_ */
+#endif /* __UTIL_UTIL */

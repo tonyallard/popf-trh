@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDL_LITERAL_H_
-#define COLIN_PDDL_LITERAL_H_
+#ifndef __PDDL_LITERAL
+#define __PDDL_LITERAL
 
 #include <string>
 #include <iostream>
@@ -41,4 +41,4 @@ public:
 
 
 
-#endif /* COLIN_PDDL_LITERAL_H_ */
+#endif /* __PDDL_LITERAL */

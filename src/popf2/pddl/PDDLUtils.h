@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDLUTILS_H_
-#define COLIN_PDDLUTILS_H_
+#ifndef __PDDLUTILS
+#define __PDDLUTILS
 
 #include <list>
 #include <set>
@@ -100,4 +100,4 @@ bool isBefore(const Planner::FFEvent * event, const Planner::FFEvent * before,
 
 }
 
-#endif /* COLIN_PDDLUTILS_H_ */
+#endif /* __PDDLUTILS */

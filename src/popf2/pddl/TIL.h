@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDL_TIL_H_
-#define COLIN_PDDL_TIL_H_
+#ifndef __PDDL_TIL
+#define __PDDL_TIL
 
 #include <list>
 #include <set>
@@ -41,4 +41,4 @@ public:
 
 }
 
-#endif /* COLIN_PDDL_TIL_H_ */
+#endif /* __PDDL_TIL */

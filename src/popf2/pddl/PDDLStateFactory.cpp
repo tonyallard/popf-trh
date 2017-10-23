@@ -24,13 +24,18 @@ namespace PDDL {
 
 const std::string PDDLStateFactory::DEFAULT_METRIC_PNE = "total-time";
 
-PDDLStateFactory::PDDLStateFactory(const Planner::MinimalState & initialState,
+PDDLStateFactory::PDDLStateFactory(const Planner::MinimalState &initialState,
 		std::list<std::pair<std::string, std::string> > constants) {
+	cout << "Address of SecondMin in PDDLStateFac: " << &(initialState.secondMin) << endl; 
+	cout << "Size: in PDDLStateFactory Const " << initialState.secondMin.size() << endl;
+	cout << "Address in PDDLStateFactory Const " << &initialState << endl;
 	this->constants = constants;
 	std::list<PDDL::Proposition> stdPropositions = getPropositions(initialState,
 			objectParameterTable);
 	staticPropositions = getStaticPropositions(stdPropositions,
 			objectParameterTable);
+	cout << "Address in PDDLStateFactory Const " << &initialState << endl;
+	cout << "Size: in PDDLStateFactory Const " << initialState.secondMin.size() << endl;
 	std::list<PDDL::PNE> stdPNEs = getPNEs(initialState, objectParameterTable);
 	staticPNEs = getStaticPNEs(stdPNEs, objectParameterTable);
 	goals = getPropositionalGoals(objectParameterTable);
@@ -218,13 +223,16 @@ std::list<PDDL::PNE> PDDLStateFactory::getPNEs(
 		std::set<PDDLObject> & objectSymbolTable) {
 	std::list<PDDL::PNE> pnes;
 	//Cycle through PNEs
-	const int pneCount = state.secondMin.size();
-	for (int i = 0; i < pneCount; i++) {
+	cout << "Address in getPNEs " << &state << endl;
+	const vector<double> & secondMin = state.secondMin;
+	cout << "Size in getPNEs: " << state.secondMin.size() << endl;
+	vector<double>::const_iterator pneItr = secondMin.begin();
+	for (int i = 0; pneItr != secondMin.end(); pneItr++, i++) {
 		Inst::PNE* aPNE = Planner::RPGBuilder::getPNE(i);
 
 		PDDL::extractParameters(aPNE, objectSymbolTable, constants);
 		PDDL::PNE pne = PNEFactory::getInstance()->getPNE(aPNE,
-				state.secondMin[i]);
+				*pneItr);
 		pnes.push_back(pne);
 	}
 

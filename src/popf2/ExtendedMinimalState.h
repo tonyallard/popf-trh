@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_EXTENDEDMINIMALSTATE_H_
-#define COLIN_EXTENDEDMINIMALSTATE_H_
+#ifndef __EXTENDEDMINIMALSTATE
+#define __EXTENDEDMINIMALSTATE
 
 #include "StartEvent.h"
 #include "minimalstate.h"
@@ -121,6 +121,10 @@ public:
     }
 
     const MinimalState & getInnerState() const {
+
+        std::cout << "Address of SecondMin in getInnerState: " << &decorated->secondMin << std::endl;
+        std::cout << "Size in getInnerState: " << decorated->secondMin.size() << std::endl;
+        std::cout << "Address in getInnerState " << decorated << std::endl;
         return *decorated;
     }
 
@@ -139,4 +143,4 @@ public:
 };
 }
 
-#endif /* COLIN_EXTENDEDMINIMALSTATE_H_ */
+#endif /* __EXTENDEDMINIMALSTATE */

@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDL_PROPOSITION_H_
-#define COLIN_PDDL_PROPOSITION_H_
+#ifndef __PDDL_PROPOSITION
+#define __PDDL_PROPOSITION
 
 #include <list>
 #include <map>
@@ -46,4 +46,4 @@ public:
 
 
 
-#endif /* COLIN_PDDL_PROPOSITION_H_ */
+#endif /* __PDDL_PROPOSITION */

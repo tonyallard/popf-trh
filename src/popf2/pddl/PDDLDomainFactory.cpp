@@ -483,15 +483,35 @@ std::list<PDDL::PendingAction> PDDLDomainFactory::getPendingActions(
 		std::set<PDDLObject> & objectSymbolTable,
 		list<PDDL::Proposition> & pendingActionRequiredObjects) {
 	std::list<PendingAction> pendingActions;
+	cout << "Begin" << endl;
+	cout << "State: " << &state << endl;
+	cout << "StartedActions: " << &state.startedActions << endl;
 	//Cycle through Facts held up by executing actions (these are effects coming into play)
+	std::map<int, std::set<int> > startedActions = state.startedActions;
+
 	std::map<int, std::set<int> >::const_iterator saItr =
-			state.startedActions.begin();
+			startedActions.begin();
 	const std::map<int, std::set<int> >::const_iterator saItrEnd =
-			state.startedActions.end();
+		startedActions.end();
 
-	for (; saItr != saItrEnd; saItr++) {
+	const std::map<int, std::set<int> >::const_iterator saItrEnd1 =
+		startedActions.end();
+	if (startedActions.empty()) {
+		return pendingActions;
+	}	
+	// cout << "Size: " << state.startedActions.empty() << endl;
+			cout << "B" << endl;
+			// cout << &saItrEnd << "<- tis the end" << endl;
 
+			cout << startedActions.size() << "<- size" << endl;
+			cout << (saItr == saItrEnd1) << "<- tis the beginning" << endl;
+			cout << &saItrEnd << "<- tis the end" << endl;
+			cout << &saItrEnd1 << "<- tis the end" << endl;
+			cout << "C" << endl;
+	for (; saItr != startedActions.end(); saItr++) {
+		cout << "Started " << &saItr->first << endl;
 		std::string name = PDDL::getActionName(saItr->first);
+		cout << name << endl;
 		std::set<PDDLObject> parameters;
 
 		//For each action get its conditions

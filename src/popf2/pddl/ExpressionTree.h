@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_UTIL_EXPNODE_H_
-#define COLIN_UTIL_EXPNODE_H_
+#ifndef __UTIL_EXPNODE
+#define __UTIL_EXPNODE
 
 #include <string>
 #include <list>
@@ -51,4 +51,4 @@ public:
 	}
 };
 }
-#endif /* COLIN_UTIL_EXPNODE_H_ */
+#endif /* __UTIL_EXPNODE */

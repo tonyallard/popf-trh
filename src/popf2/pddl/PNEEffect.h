@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_PDDL_PNEEFFECT_H_
-#define COLIN_PDDL_PNEEFFECT_H_
+#ifndef __PDDL_PNEEFFECT
+#define __PDDL_PNEEFFECT
 
 #include <string>
 #include <list>
@@ -37,4 +37,4 @@ public:
 
 };
 }
-#endif /* COLIN_PDDL_PNEEFFECT_H_ */
+#endif /* __PDDL_PNEEFFECT */

@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_STARTEVENT_H_
-#define COLIN_STARTEVENT_H_
+#ifndef __STARTEVENT
+#define __STARTEVENT
 
 #include <set>
 #include <values.h>
@@ -86,4 +86,4 @@ struct StartEvent {
 };
 }
 
-#endif /* COLIN_STARTEVENT_H_ */
+#endif /* __STARTEVENT */

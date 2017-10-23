@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_LITERALFACTORY_H_
-#define COLIN_LITERALFACTORY_H_
+#ifndef __LITERALFACTORY
+#define __LITERALFACTORY
 
 #include <string>
 #include <list>
@@ -46,4 +46,4 @@ private:
 
 }
 
-#endif /* COLIN_LITERALFACTORY_H_ */
+#endif /* __LITERALFACTORY */
