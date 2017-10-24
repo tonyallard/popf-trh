@@ -5029,7 +5029,6 @@ Solution FF::search(bool & reachedGoal)
     WAStar = false;
     set<int> goals;
     set<int> numericGoals;
-    cout << "Start" << endl;
     ExtendedMinimalState initialState;
 
     {
@@ -5037,11 +5036,8 @@ Solution FF::search(bool & reachedGoal)
         vector<double> tinitialFluents;
 
         RPGBuilder::getNonStaticInitialState(tinitialState, tinitialFluents);
-        std::cout << "Address of SecondMin just prior to init: " << &(initialState.getInnerState().secondMin) << std::endl;
         initialState.getEditableInnerState().setFacts(tinitialState);
         initialState.getEditableInnerState().setFacts(tinitialFluents);
-
-        cout << "size - " << initialState.getEditableInnerState().secondMin.size() << endl;
 
         #ifdef STOCHASTICDURATIONS        
         durationManager->prepareTheInitialState(initialState.getEditableInnerState());        
@@ -5052,11 +5048,7 @@ Solution FF::search(bool & reachedGoal)
         }
         
     }
-    cout << "1(FFSolver.cpp:5055): Address of minimalState: " << &initialState.getInnerState() << endl;
-    std::cout << "1(FFSolver.cpp:5056): Address of SecondMin: " << &initialState.getInnerState().secondMin << std::endl;
-    cout << "1(FFSolver.cpp:5057): Size of SecondMin: " << initialState.getInnerState().secondMin.size() << endl;
     //Setup PDDL Factory
-    // const MinimalState mm = initialState.getInnerState();
     PDDL::PDDLStateFactory pddlFactory(initialState.getInnerState(), PDDL::PDDLDomainFactory::getInstance()->getConstants());
     //Count states explored from last EHC jump
     int EHCSearchStateCount = 0;

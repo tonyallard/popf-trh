@@ -21,7 +21,7 @@ find_package(Cgl)
 find_package(OSI)
 #ENDIF(NOT DISABLE_CLP)
 
-include_directories(${val_SOURCE_DIR} ${val_SOURCE_DIR}/parsing ${val_BINARY_DIR} ${CLP_INCLUDES}/coin ${CBC_INCLUDES}/coin ${CPLEX_INCLUDES} ${CONCERT_INCLUDES})
+include_directories(${val_SOURCE_DIR} ${val_SOURCE_DIR}/parsing ${val_BINARY_DIR} ${PDDL_SOURCE_DIR} ${PDDL_BINARY_DIR} ${TRH_SOURCE_DIR} ${TRH_BINARY_DIR} ${CLP_INCLUDES}/coin ${CBC_INCLUDES}/coin ${CPLEX_INCLUDES} ${CONCERT_INCLUDES})
 
 set(popf2_build_srcs
     HTrio.cpp

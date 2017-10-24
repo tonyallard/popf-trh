@@ -121,10 +121,6 @@ public:
     }
 
     const MinimalState & getInnerState() const {
-
-        // std::cout << "2.5(ExtendedMinimalState.cpp:125): Address of minimalState: " << decorated << std::endl;
-        // std::cout << "2.5(ExtendedMinimalState.cpp:126): Address of SecondMin: " << &decorated->secondMin << std::endl;
-        // std::cout << "2.5(ExtendedMinimalState.cpp:127): Size of SecondMin: " << decorated->secondMin.size() << std::endl;
         return *decorated;
     }
 
