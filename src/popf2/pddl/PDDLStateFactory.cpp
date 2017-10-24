@@ -218,11 +218,8 @@ std::list<PDDL::PNE> PDDLStateFactory::getPNEs(
 		std::set<PDDLObject> & objectSymbolTable) {
 	std::list<PDDL::PNE> pnes;
 	//Cycle through PNEs
-	cout << "Address in getPNEs " << &state << endl;
-	const vector<double> & secondMin = state.secondMin;
-	cout << "Size in getPNEs: " << state.secondMin.size() << endl;
-	vector<double>::const_iterator pneItr = secondMin.begin();
-	for (int i = 0; pneItr != secondMin.end(); pneItr++, i++) {
+	vector<double>::const_iterator pneItr = state.secondMin.begin();
+	for (int i = 0; pneItr != state.secondMin.end(); pneItr++, i++) {
 		Inst::PNE* aPNE = Planner::RPGBuilder::getPNE(i);
 
 		PDDL::extractParameters(aPNE, objectSymbolTable, constants);

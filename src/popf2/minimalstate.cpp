@@ -208,7 +208,6 @@ MinimalState::MinimalState(const MinimalState & other, const int extendBy)
 MinimalState::MinimalState()
     : planLength(0), actionsExecuting(0), nextTIL(0), temporalConstraints(globalTransformer->emptyTemporalConstraints())
 {
-    secondMin = vector<double>();
     #ifdef STOCHASTICDURATIONS
     stepFromWhichLiteralGoalsHold = 0;
     stepsFromWhichNumericGoalsHold = 0;

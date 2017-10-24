@@ -543,8 +543,6 @@ std::string getActionName(int actionNum) {
 	std::ostringstream output;
 	Inst::instantiatedOp* action = Planner::RPGBuilder::getInstantiatedOp(
 			actionNum);
-	cout << "Action: " << action << endl;
-	cout.flush();
 	output << action->getHead()->getName();
 	VAL::var_symbol_list::const_iterator paramItr =
 			action->forOp()->parameters->begin();
@@ -553,7 +551,6 @@ std::string getActionName(int actionNum) {
 	for (; paramItr != paramItrEnd; paramItr++) {
 		output << "-" << ((*action->getEnv())[*paramItr])->getName();
 	}
-	cout << output.str() << endl;
 	return output.str();
 }
 

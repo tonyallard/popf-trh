@@ -39,7 +39,7 @@ PDDL::PNE PNEFactory::getPNE(const VAL::func_term * func, double value) {
 list<string> PNEFactory::getParameters(
 	const VAL::parameter_symbol_list * params) {
 
-	list<string> parameters = list<string>();
+	list<string> parameters;
 	VAL::parameter_symbol_list::const_iterator argItr =
 			params->begin();
 	const VAL::parameter_symbol_list::const_iterator argItrEnd =

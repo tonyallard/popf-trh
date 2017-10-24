@@ -5036,6 +5036,7 @@ Solution FF::search(bool & reachedGoal)
         vector<double> tinitialFluents;
 
         RPGBuilder::getNonStaticInitialState(tinitialState, tinitialFluents);
+        
         initialState.getEditableInnerState().setFacts(tinitialState);
         initialState.getEditableInnerState().setFacts(tinitialFluents);
 
