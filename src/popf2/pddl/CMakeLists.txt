@@ -17,6 +17,7 @@ set(libPDDL_SRCS
 	PNEEffect.cpp
 	PNEFactory.cpp
 	TIL.cpp
+	TILFactory.cpp
 	PendingAction.cpp
 	Metric.cpp
 	PDDLUtils.cpp

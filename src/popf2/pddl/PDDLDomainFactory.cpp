@@ -16,6 +16,7 @@
 #include "TIL.h"
 #include "PDDLUtils.h"
 #include "PropositionFactory.h"
+#include "TILFactory.h"
 #include "PNEFactory.h"
 #include "ExpressionTree.h"
 #include "../TRH/TRH.h"
@@ -63,6 +64,7 @@ PDDL::PDDLDomain PDDLDomainFactory::getDeTILedDomain(const VAL::domain * domain,
 	//Construct De-TILed Features
 	list<string> deTILedActions;
 	std::list<PDDL::Proposition> tilPredicates;
+	std::list<PDDL::Proposition> tilGoalPredicates;
 	std::list<PDDL::Proposition> tilRequiredObjects;
 	std::set<PDDLObject> domainObjectSymbolTable;
 	std::list<PDDL::Proposition> tilRequiredObjectsParameterised;
@@ -71,7 +73,7 @@ PDDL::PDDLDomain PDDLDomainFactory::getDeTILedDomain(const VAL::domain * domain,
 	std::list<TIL> tils = getTILs(state, timestamp, domainObjectSymbolTable);
 	bool hasTils = tils.size();
 	if (hasTils) {
-		deTILedActions = getdeTILedActions(tils, tilPredicates,
+		deTILedActions = getdeTILedActions(tils, tilPredicates, tilGoalPredicates,
 				tilRequiredObjects, tilRequiredObjectsParameterised);
 	}
 	std::list<PDDL::PendingAction> pendingActions = getPendingActions(state,
@@ -82,11 +84,11 @@ PDDL::PDDLDomain PDDLDomainFactory::getDeTILedDomain(const VAL::domain * domain,
 	list<string> requirements = getDomainRequirements(domain->req, hasTils);
 	list<PDDL::PDDLObject> types = getTypes(domain->types);
 	list<PDDL::Proposition> predicates = getPredicates(pendingActions,
-			tilPredicates, tilRequiredObjectsParameterised);
+			tilPredicates, tilGoalPredicates, tilRequiredObjectsParameterised);
 	list<string> actions = getActions(pendingActions, deTILedActions);
 
 	return PDDLDomain(name, requirements, types, predicates, functions,
-			constants, actions, tilPredicates, tilRequiredObjects,
+			constants, actions, tilPredicates, tilGoalPredicates, tilRequiredObjects,
 			pendingActionRequiredObjects, domainObjectSymbolTable);
 }
 
@@ -180,6 +182,7 @@ list<PDDL::Proposition> PDDLDomainFactory::getDomainPredicates(
 list<PDDL::Proposition> PDDLDomainFactory::getPredicates(
 		const std::list<PendingAction> & pendingActions /*=empty list*/,
 		const std::list<PDDL::Proposition> & tilPredicates /*=empty list*/,
+		const std::list<PDDL::Proposition> & tilGoalPredicates /*==empty list*/,
 		const std::list<PDDL::Proposition> & tilRequiredObjects /*=empty list*/) {
 	list<PDDL::Proposition> propositions;
 
@@ -190,6 +193,9 @@ list<PDDL::Proposition> PDDLDomainFactory::getPredicates(
 	//This ensures correct TIL ordering
 	propositions.insert(propositions.end(), tilPredicates.begin(),
 			tilPredicates.end());
+	//This ensures all the TILs are achieved
+	propositions.insert(propositions.end(), tilGoalPredicates.begin(),
+			tilGoalPredicates.end());
 	//Add Required Predicates for Partial Actions
 	if (pendingActions.size()) {
 		std::list<PendingAction>::const_iterator pendActItr =
@@ -348,17 +354,19 @@ std::string PDDLDomainFactory::getConditions(const VAL::goal * goal,
 
 list<string> PDDLDomainFactory::getdeTILedActions(std::list<TIL> tils,
 		std::list<PDDL::Proposition> & tilActionPreconditions,
+		std::list<PDDL::Proposition> & tilGoalPredicates,
 		std::list<PDDL::Proposition> & tilRequiredObjects,
 		std::list<PDDL::Proposition> & tilRequiredObjectsParameterised) {
 	//sort list by timestamp
 	tils.sort(PDDL::TIL::TILTimestampComparator);
 	//Look at each TIL one at a time;
 	list<string> actions;
-	std::list<TIL>::const_iterator tilItr = tils.begin();
-	const std::list<TIL>::const_iterator tilItrEnd = tils.end();
+	std::list<TIL>::const_reverse_iterator tilItr = tils.rbegin();
+	const std::list<TIL>::const_reverse_iterator tilItrEnd = tils.rend();
 	for (; tilItr != tilItrEnd; tilItr++) {
 		string deTILedAction = getdeTILedAction(*tilItr, tilActionPreconditions,
-				tilRequiredObjects, tilRequiredObjectsParameterised);
+				tilGoalPredicates, tilRequiredObjects, 
+				tilRequiredObjectsParameterised);
 		actions.push_back(deTILedAction);
 	}
 	return actions;
@@ -366,11 +374,13 @@ list<string> PDDLDomainFactory::getdeTILedActions(std::list<TIL> tils,
 
 string PDDLDomainFactory::getdeTILedAction(const TIL & til,
 		std::list<PDDL::Proposition> & tilActionPreconditions,
+		std::list<PDDL::Proposition> & tilGoalPredicates,
 		std::list<PDDL::Proposition> & tilRequiredObjects,
 		std::list<PDDL::Proposition> & tilRequiredObjectsParameterised) {
 	//Create special proposition for this TIL
 	std::list<string> arguments;
 	PDDL::Proposition tilLit(til.getName(), arguments);
+	PDDL::Proposition tilComplete(til.getName() + "-complete", arguments);
 	//Find all parameters for this TIL Action and generate the paramtable
 	std::map<PDDLObject, std::string> parameterTable =
 			PDDL::generateParameterTable(til.getParameters());
@@ -405,20 +415,8 @@ string PDDLDomainFactory::getdeTILedAction(const TIL & til,
 
 	// Pre-conditions
 	output << "\t\t:precondition (and" << endl;
-	//Add requiredment that TIL hasn't happened (one shot)
-	//TODO: This is pretty much redundant given the required predicates
-	output << "\t\t\t(not " << tilLit << ")" << std::endl;
-	//Add requirement for past TILs to have been achieved
-	if (tilActionPreconditions.size()) {
-		std::list<PDDL::Proposition>::const_iterator preItr =
-				tilActionPreconditions.begin();
-		const std::list<PDDL::Proposition>::const_iterator preItrEnd =
-				tilActionPreconditions.end();
-		for (; preItr != preItrEnd; preItr++) {
-			output << "\t\t\t" << preItr->toParameterisedString(parameterTable)
-					<< endl;
-		}
-	}
+	//Add requiredment that TIL happens only once (one shot)
+	output << "\t\t\t" << tilLit << std::endl;
 
 	//Add predicates to ensure correct objects are used
 	std::list<PDDL::Proposition>::const_iterator reqObjItr =
@@ -428,8 +426,9 @@ string PDDLDomainFactory::getdeTILedAction(const TIL & til,
 				<< endl;
 	}
 
-	//Add Effects
 	output << "\t\t)" << endl;
+	
+	//Add Effects
 	output << "\t\t:effect (and" << endl;
 	std::list<PDDL::Proposition>::const_iterator addItr =
 			til.getAddEffects().begin();
@@ -441,8 +440,12 @@ string PDDLDomainFactory::getdeTILedAction(const TIL & til,
 	}
 	// add special predicate to indicate that the til is complete
 	// This is the one shot to remove the TIL requirement
-	//TODO: This is pretty much redundant given tracking of objects
-	output << "\t\t\t" << tilLit << endl;
+	output << "\t\t\t(not " << tilLit << ")" << endl;
+	output << "\t\t\t" << tilComplete << endl;
+	// Add effect to engage next TIL
+	if (!tilActionPreconditions.empty()) {
+		output << "\t\t\t" << *tilActionPreconditions.rbegin() << endl;
+	}
 
 	// Del Effects
 	// Add predicates to make cargo unavailable
@@ -465,6 +468,8 @@ string PDDLDomainFactory::getdeTILedAction(const TIL & til,
 
 	//Footer
 	output << "\t\t)" << endl << "\t)";
+	//Add Precondition that tracks completion towards the goal
+	tilGoalPredicates.push_back(tilComplete);
 	//Add the TIL Proposition to the list of preconditions for future TILS
 	//This retains precedence ordering of TILs
 	tilActionPreconditions.push_back(tilLit);
@@ -484,16 +489,13 @@ std::list<PDDL::PendingAction> PDDLDomainFactory::getPendingActions(
 		list<PDDL::Proposition> & pendingActionRequiredObjects) {
 	std::list<PendingAction> pendingActions;
 	//Cycle through Facts held up by executing actions (these are effects coming into play)
-	std::map<int, std::set<int> > startedActions = state.startedActions;
-
 	std::map<int, std::set<int> >::const_iterator saItr =
-			startedActions.begin();
+			state.startedActions.begin();
 	const std::map<int, std::set<int> >::const_iterator saItrEnd =
-		startedActions.end();
+			state.startedActions.end();
 
-	const std::map<int, std::set<int> >::const_iterator saItrEnd1 =
-		startedActions.end();
-	for (; saItr != startedActions.end(); saItr++) {
+	for (; saItr != saItrEnd; saItr++) {
+
 		std::string name = PDDL::getActionName(saItr->first);
 		std::set<PDDLObject> parameters;
 
@@ -656,14 +658,42 @@ std::list<PDDL::TIL> PDDLDomainFactory::getTILs(
 		std::set<PDDLObject> & objectSymbolTable) {
 
 	std::list<PDDL::TIL> tils;
-	//Cycle thourgh TILs
+	//Cycle thourgh normals TILs
 	vector<Planner::RPGBuilder::FakeTILAction*> theTILs = Planner::RPGBuilder::getTILVec();
 
 	for (int tilItr = state.nextTIL; tilItr < theTILs.size(); tilItr++) {
 		const Planner::RPGBuilder::FakeTILAction * tilAction = theTILs[tilItr];
 
 		PDDL::extractParameters(tilAction, objectSymbolTable, constants);
-		PDDL::TIL til = PDDL::getTIL(*tilAction, timestamp, constants);
+		PDDL::TIL til = PDDL::TILFactory::getInstance()->getTIL(*tilAction, timestamp, constants);
+		tils.push_back(til);
+	}
+
+	//Cycle through strange Pointless TILs
+	map<int, map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
+		Planner::LiteralLT> > optTILs = Planner::RPGBuilder::getPointlessTILVec();
+	map<int, map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
+		Planner::LiteralLT> >::const_iterator optTILItr = optTILs.begin();
+	for (; optTILItr != optTILs.end(); optTILItr++) {
+		double duration = Planner::RPGBuilder::getAllTimedInitialLiterals()[optTILItr->first]->duration;
+		Planner::LiteralSet addEffects;
+		Planner::LiteralSet delEffects;
+		
+		map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
+			Planner::LiteralLT>::const_iterator literalItr = optTILItr->second.begin();
+		for (; literalItr != optTILItr->second.end(); literalItr++) {
+			if ((literalItr->second == Planner::RPGBuilder::pointless_effect::PE_ADDED) ||
+				(literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED_THEN_ADDED)) {
+				addEffects.insert(literalItr->first);
+			} else if ((literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED) ||
+				(literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED_THEN_ADDED)) {
+				delEffects.insert(literalItr->first);
+			}
+		}
+
+		Planner::RPGBuilder::FakeTILAction tilAction(duration, addEffects, delEffects);
+		PDDL::extractParameters(&tilAction, objectSymbolTable, constants);
+		PDDL::TIL til = PDDL::TILFactory::getInstance()->getTIL(tilAction, timestamp, constants);
 		tils.push_back(til);
 	}
 	return tils;

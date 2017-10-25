@@ -32,6 +32,7 @@ private:
 	std::list<std::pair<std::string, std::string> > constants;
 	list<std::string> actions;
 	list<PDDL::Proposition> tilPredicates;
+	list<PDDL::Proposition> tilGoalPredicates;
 	list<PDDL::Proposition> tilRequiredObjects;
 	set<PDDLObject> domainObjectSymbolTable;
 	list<PDDL::Proposition> pendingActionRequiredObjects;
@@ -59,11 +60,11 @@ public:
 	PDDLDomain(string name, list<string> requirements, list<PDDL::PDDLObject> types,
 					list<PDDL::Proposition> predicates,	list<PDDL::Proposition> functions, 
 					std::list<std::pair<std::string, std::string> > constants, list<std::string> actions,
-					list<PDDL::Proposition> tilPredicates, list<PDDL::Proposition> tilRequiredObjects,
+					list<PDDL::Proposition> tilPredicates, list<PDDL::Proposition> tilGoalPredicates, list<PDDL::Proposition> tilRequiredObjects,
 					list<PDDL::Proposition> pendingActionRequiredObjects, set<PDDLObject> domainObjectSymbolTable) :
 					name(name), requirements(requirements), types(types),
 					predicates(predicates), functions(functions), 
-					constants(constants), actions(actions), tilPredicates(tilPredicates), 
+					constants(constants), actions(actions), tilPredicates(tilPredicates), tilGoalPredicates(tilGoalPredicates),
 					tilRequiredObjects(tilRequiredObjects), pendingActionRequiredObjects(pendingActionRequiredObjects),
 					domainObjectSymbolTable(domainObjectSymbolTable) {};
 	inline std::string getName() {return name;}
@@ -73,6 +74,7 @@ public:
 	inline const list<PDDL::Proposition> & getFunctions() {return functions;}
 	inline const list<pair<string, string> > & getConstants() {return constants;}
 	inline const list<std::string> & getActions() {return actions;}
+	inline const list<PDDL::Proposition> & getTILGoalPredicates() {return tilGoalPredicates;}
 	inline const list<PDDL::Proposition> & getTILPredicates() {return tilPredicates;}
 	inline const list<PDDL::Proposition> & getTILRequiredObjects() {return tilRequiredObjects;}
 	inline const list<PDDL::Proposition> & getPendingActionRequiredObjects() {return pendingActionRequiredObjects;}

@@ -17,6 +17,7 @@
 #include "PropositionFactory.h"
 #include "LiteralFactory.h"
 #include "PNEFactory.h"
+#include "TILFactory.h"
 
 #include "../globals.h"
 #include "../RPGBuilder.h"
@@ -631,42 +632,6 @@ PDDL::Proposition getFunction(const VAL::func_decl * func) {
 	return PDDL::Proposition(name, arguments);
 }
 
-PDDL::TIL getTIL(Planner::RPGBuilder::FakeTILAction aTIL, double aTimestamp,
-		std::list<std::pair<std::string, std::string> > constants) {
-	double timestamp = aTIL.duration - aTimestamp;
-	std::list<PDDL::Proposition> addEffects;
-	std::list<PDDL::Proposition> delEffects;
-
-	std::set<PDDLObject> parameters;
-
-	//Get Add effects
-	std::list<Inst::Literal*>::const_iterator tilAddLitInt =
-			aTIL.addEffects.begin();
-	std::list<Inst::Literal*>::const_iterator tilAddLitIntEnd =
-			aTIL.addEffects.end();
-	for (; tilAddLitInt != tilAddLitIntEnd; tilAddLitInt++) {
-		Inst::Literal * literal = (*tilAddLitInt);
-		parameters = PDDL::extractParameters(literal, parameters, constants);
-		PDDL::Proposition lit = PropositionFactory::getInstance()->
-			getProposition(literal);
-		addEffects.push_back(lit);
-	}
-
-	//Get Del Effects
-	std::list<Inst::Literal*>::const_iterator tilDelLitInt =
-			aTIL.delEffects.begin();
-	std::list<Inst::Literal*>::const_iterator tilDelLitIntEnd =
-			aTIL.delEffects.end();
-	for (; tilDelLitInt != tilDelLitIntEnd; tilDelLitInt++) {
-		Inst::Literal * literal = (*tilDelLitInt);
-		parameters = PDDL::extractParameters(literal, parameters, constants);
-		PDDL::Proposition lit = PropositionFactory::getInstance()->
-			getProposition(literal);
-		delEffects.push_back(lit);
-	}
-	return PDDL::TIL(addEffects, delEffects, timestamp, parameters);
-}
-
 //Plan Helper Functions
 
 std::list<std::string> getPlanPrefix(const std::list<Planner::FFEvent>& plan) {
@@ -680,7 +645,8 @@ std::list<std::string> getPlanPrefix(const std::list<Planner::FFEvent>& plan) {
 		if (eventItr->time_spec == VAL::time_spec::E_AT) {
 			Planner::RPGBuilder::FakeTILAction * action =
 					Planner::RPGBuilder::getAllTimedInitialLiterals()[eventItr->divisionID];
-			name << "at " << PDDL::getTIL(*action, 0.0).getName() << endl;
+			name << "at " 
+				<< PDDL::TILFactory::getInstance()->getTIL(*action, 0.0).getName() << endl;
 		} else {
 			name << PDDL::getActionName(op->getID());
 		}

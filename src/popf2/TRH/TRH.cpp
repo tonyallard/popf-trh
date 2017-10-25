@@ -629,12 +629,14 @@ void TRH::writeStateToFile(const Planner::MinimalState & state,
 	//Shared data
 	std::list<PDDL::Proposition> tilRequiredObjects = domain.getTILRequiredObjects();
 	std::list<PDDL::Proposition> tilPredicates = domain.getTILPredicates();
+	std::list<PDDL::Proposition> tilGoalPredicates = domain.getTILGoalPredicates();
 	std::list<PDDL::Proposition> pendingActionRequiredObjects = domain.getPendingActionRequiredObjects();
 	std::set<PDDL::PDDLObject> domainObjectSymbolTable = domain.getDomainObjectSymbolTable();
 
 	//State
 	PDDL::PDDLState pddlState = pddlFactory.getDeTILedPDDLState(state, plan, timestamp, 
-			heuristic, tilPredicates, tilRequiredObjects, pendingActionRequiredObjects, domainObjectSymbolTable);
+			heuristic, tilPredicates, tilGoalPredicates, tilRequiredObjects, 
+			pendingActionRequiredObjects, domainObjectSymbolTable);
 				
 	TRH::TRH::TIME_SPENT_CONVERTING_PDDL_STATE += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
 		

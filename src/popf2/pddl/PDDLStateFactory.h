@@ -26,13 +26,11 @@ public:
 
 	PDDLStateFactory(const Planner::MinimalState &initialState, std::list<std::pair<std::string, std::string> > constants);
 
-	// PDDLState getPDDLState(const Planner::MinimalState & state,
-	// 		std::list<Planner::FFEvent>& plan, double timestamp,
-	// 		double heuristic);
 	PDDLState getDeTILedPDDLState(const Planner::MinimalState & state,
 			const std::list<Planner::FFEvent>& plan,
 			double timestamp, double heuristic,
 			const std::list<PDDL::Proposition> & tilPredicates,
+			const std::list<PDDL::Proposition> & tilGoalPredicates,
 			const std::list<PDDL::Proposition> & tilRequiredObjects,
 			const std::list<PDDL::Proposition> & pendingActionRequiredObjects,
 			const std::set<PDDLObject> & tilObjectSymbolTable);

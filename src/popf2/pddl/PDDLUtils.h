@@ -87,9 +87,6 @@ Inst::instantiatedOp * getOperator(std::string actionInstance);
 //Basic conversion functions
 PDDL::PDDLObject getPDDLObject(const VAL::pddl_typed_symbol * pddlType);
 PDDL::Proposition getFunction(const VAL::func_decl * func);
-PDDL::TIL getTIL(Planner::RPGBuilder::FakeTILAction aTIL, double aTimestamp,
-		std::list<std::pair<std::string, std::string> > constants = std::list<
-				std::pair<std::string, std::string> >());
 
 //Plan Helper Functions
 std::list<std::string> getPlanPrefix(const std::list<Planner::FFEvent>& plan);

@@ -1370,6 +1370,10 @@ public:
         return timedInitialLiteralsVector;
     };
 
+    static map<int, map<Literal*, pointless_effect, LiteralLT> > & getPointlessTILVec() {
+        return pointlessTILEffects;
+    };
+
     static void getEffects(instantiatedOp* op, const bool & start, list<Literal*> & add, list<Literal*> & del, list<NumericEffect> & numeric);
     static void getPrecInv(instantiatedOp* op, const bool & start, list<Literal*> & precs, list<Literal*> & inv, list<NumericPrecondition> & numericPrec, list<NumericPrecondition> & numericInv);
     // static void getCollapsedAction(instantiatedOp* op, list<Literal*> & pre, list<Literal*> & add, list<Literal*> & del, list<NumericPrecondition> & numericPre, list<NumericEffect> & numericEff);

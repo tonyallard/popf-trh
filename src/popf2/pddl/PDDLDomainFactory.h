@@ -53,6 +53,7 @@ private:
 	list<PDDL::Proposition> getPredicates(const std::list<PendingAction> & pendingActions =
 			std::list<PendingAction>(),
 			const std::list<PDDL::Proposition> & tilPredicates = std::list<PDDL::Proposition>(),
+			const std::list<PDDL::Proposition> & tilGoalPredicates = std::list<PDDL::Proposition>(),
 			const std::list<PDDL::Proposition> & tilRequiredObjects = std::list<PDDL::Proposition>());
 	
 	list<PDDL::Proposition> getDomainPredicates(const VAL::pred_decl_list * predicates);
@@ -67,10 +68,12 @@ private:
 	std::string getAction(const VAL::action * action);
 	list<string> getdeTILedActions(std::list<TIL> tils,
 		std::list<PDDL::Proposition> & tilActionPreconditions, 
+		std::list<PDDL::Proposition> & tilGoalPredicates,
 		std::list<PDDL::Proposition> & tilRequiredObjects,
 		std::list<PDDL::Proposition> & tilRequiredObjectsParameterised);
 	std::string getdeTILedAction(const TIL & til,
-		std::list<PDDL::Proposition> & tilActionPreconditions, 
+		std::list<PDDL::Proposition> & tilActionPreconditions,
+		std::list<PDDL::Proposition> & tilGoalPredicates, 
 		std::list<PDDL::Proposition> & tilRequiredObjects,
 		std::list<PDDL::Proposition> & tilRequiredObjectsParameterised);
 	std::list<PDDL::PendingAction> getPendingActions(
