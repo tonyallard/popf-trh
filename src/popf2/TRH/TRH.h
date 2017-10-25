@@ -12,7 +12,7 @@
 
 #include "../pddl/PDDLState.h"
 #include "../pddl/PDDLStateFactory.h"
-#include "../FFSolver.h"
+#include "../ExtendedMinimalState.h"
 #include "../FFEvent.h"
 #include "../util/Util.h"
 #include "../lpscheduler.h"
@@ -65,6 +65,7 @@ private:
 	void removeTempState(string fileName);
 	list<Planner::FFEvent> getActions(list<Planner::FFEvent> & actionList);
 	list<string> getRelaxedPlanStr(const string & output);
+	list<Planner::ActionSegment> getRelaxedPlan(list<string> planStr);
 	map<double, Planner::ActionSegment> getRelaxedPlan(list<string> planStr, 
 		double timestamp);
 	list<Planner::FFEvent> getRelaxedEventList(list<string> planStr, 
@@ -82,7 +83,7 @@ public:
 	static TRH * getInstance();
 	pair<double, int> getHeuristic(Planner::ExtendedMinimalState & theState,
 		std::list<Planner::FFEvent>& plan, std::list<Planner::FFEvent> & now,
-		double timestamp, double heuristic, 
+		double timestamp, double heuristic, list<Planner::ActionSegment> & helpfulActions,
 		PDDL::PDDLStateFactory pddlFactory);
 	static double TIME_SPENT_IN_HEURISTIC;
 	static double TIME_SPENT_IN_PRINTING_TO_FILE;

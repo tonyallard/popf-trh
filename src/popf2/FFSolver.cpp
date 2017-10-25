@@ -1552,14 +1552,11 @@ HTrio FF::calculateHeuristicAndSchedule(ExtendedMinimalState & theState, Extende
     if (FF::USE_TRH) {
         double timeStamp = 0.00;
         if (!minTimestamps.empty()) {
-            //FIXME: Need to determine best way to pick the states timestamp
-            //Should we add 0.001 for epoch or take the timestamp of the
-            //last action?
-            timeStamp = *minTimestamps.rbegin();// + 0.001;
+            timeStamp = *minTimestamps.rbegin();
         }
         //Use TRH Heuristic
         pair<double, int> result = TRH::TRH::getInstance()->getHeuristic(theState, header, now,
-                timeStamp, 0, pddlFactory);
+                timeStamp, 0, helpfulActions, pddlFactory);
         h = result.first;
         makespanEstimate = result.second;
 
@@ -1586,7 +1583,6 @@ HTrio FF::calculateHeuristicAndSchedule(ExtendedMinimalState & theState, Extende
 		        FFcache_upToDate = true;
 		    }
 		} else {
-		    //printState(theState);
 			clock_t begin_time = clock();
 		    h = RPGBuilder::getHeuristic()->getRelaxedPlan(theState.getInnerState(), &(theState.startEventQueue), minTimestamps, theState.timeStamp,
 		                                                   extrapolatedMin, extrapolatedMax, timeAtWhichValueIsDefined,                                      // for colin-jair heuristic
@@ -1679,7 +1675,7 @@ HTrio FF::calculateHeuristicAndCompressionSafeSchedule(ExtendedMinimalState & th
     if (FF::USE_TRH) {
         //Use TRH Heuristic
         pair<double, int> result = TRH::TRH::getInstance()->getHeuristic(theState, header, 
-                now, theState.timeStamp, 0, pddlFactory);
+                now, theState.timeStamp, 0, helpfulActions, pddlFactory);
         h = result.first;
         makespanEstimate = result.second;
     } else {
@@ -5036,7 +5032,7 @@ Solution FF::search(bool & reachedGoal)
         vector<double> tinitialFluents;
 
         RPGBuilder::getNonStaticInitialState(tinitialState, tinitialFluents);
-        
+
         initialState.getEditableInnerState().setFacts(tinitialState);
         initialState.getEditableInnerState().setFacts(tinitialFluents);
 
