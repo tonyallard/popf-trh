@@ -120,7 +120,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 			list<Planner::FFEvent> > solution = reprocessPlan(proposedPlan);
 		Planner::FF::workingBestSolution.update(solution.second, solution.first.temporalConstraints, 
 			Planner::FF::evaluateMetric(solution.first, list<Planner::FFEvent>(), false));
-	} else {
+	} else if (Planner::FF::helpfulActions) {
 		list<Planner::ActionSegment> relaxedPlanActions = getRelaxedPlan(relaxedPlanStr);
 		helpfulActions.insert(helpfulActions.begin(), relaxedPlanActions.begin(), 
 			relaxedPlanActions.end());
