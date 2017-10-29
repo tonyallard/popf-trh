@@ -23,7 +23,7 @@
 namespace TRH {
 
 TRH * TRH::INSTANCE = NULL;
-const char * TRH::H_CMD = "./lib/popf3-clp";
+const char * TRH::H_CMD = "./lib/colin-clp";
 const string TRH::TEMP_FILE_PATH = "/tmp/";
 const string TRH::TEMP_FILE_PREFIX = "temp";
 const string TRH::TEMP_DOMAIN_SUFFIX = "-domain";
@@ -106,8 +106,8 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 		relaxedPlanSize = stoi(relaxedPlanSizeStr);
 		// printf("Relaxed Plan Length: %s\n", relaxedPlanSizeStr.c_str());
 	}
-	list<string> relaxedPlanStr = getRelaxedPlanStr(result);
-	if ((relaxedPlanStr.size() != 0) && (hval == 0.0)) {
+	if (hval == 0.0) {
+		list<string> relaxedPlanStr = getRelaxedPlanStr(result);
 		list<Planner::FFEvent> proposedPlan(getActions(header));
 
 		list<Planner::FFEvent> nowList = getActions(now);
@@ -121,8 +121,9 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 		Planner::FF::workingBestSolution.update(solution.second, solution.first.temporalConstraints, 
 			Planner::FF::evaluateMetric(solution.first, list<Planner::FFEvent>(), false));
 	} else if (Planner::FF::helpfulActions) {
+		list<string> relaxedPlanStr = getRelaxedPlanStr(result);
 		list<Planner::ActionSegment> relaxedPlanActions = getRelaxedPlan(relaxedPlanStr);
-		helpfulActions.insert(helpfulActions.begin(), relaxedPlanActions.begin(), 
+		helpfulActions.insert(helpfulActions.end(), relaxedPlanActions.begin(), 
 			relaxedPlanActions.end());
 	}
 	return std::make_pair (hval, relaxedPlanSize);
@@ -185,6 +186,7 @@ list<string> TRH::getRelaxedPlanStr(const string & output) {
 	string planSection = output.substr(startPos + H_PLAN_DELIM_START.size(), 
 		endPos-(startPos + H_PLAN_DELIM_START.size()));
 	// cout << "Relaxed Plan" << endl;
+	// cout << planSection << endl;
 	//Iterate through actions
 	std::istringstream iss(planSection);
 	for (std::string line; std::getline(iss, line); ){
