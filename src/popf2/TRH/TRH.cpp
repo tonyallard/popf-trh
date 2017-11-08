@@ -402,7 +402,7 @@ std::pair<Planner::MinimalState, list<Planner::FFEvent> > TRH::reprocessPlan(lis
 		const list<Planner::FFEvent*>::iterator sortedEnd = sortedSoln.end();
 
 		for (; sortedItr != sortedEnd; ++sortedItr) {
-			if (osItr->lpTimestamp < (*sortedItr)->lpTimestamp) {
+			if ((osItr->lpTimestamp - (*sortedItr)->lpTimestamp) < -(EPSILON / 10.0)) {
 				sortedSoln.insert(sortedItr, &(*osItr));
 				break;
 			}
