@@ -70,6 +70,8 @@ bool FF::USE_TRH = true;
 int FF::STATES_EVALUATED = 0;
 int FF::STATES_EVALUATED_IN_HEURISTIC = 0;
 int FF::DEAD_END_COUNT = 0;
+int FF::initialState_HeuristicStateEvals = 0;
+double FF::initialState_HeuristicCompTime = 0.0;
 
 Solution::Solution()
     : plan(0), constraints(0), quality(std::numeric_limits<double>::signaling_NaN())
@@ -5114,6 +5116,10 @@ Solution FF::search(bool & reachedGoal)
         initialHeuristic = bestHeuristic;
         searchQueue.push_back(initialSQI, 1);
     }
+
+    //Record details of initial state
+    FF::initialState_HeuristicStateEvals = FF::STATES_EVALUATED_IN_HEURISTIC;
+    FF::initialState_HeuristicCompTime = TRH::TRH::TIME_SPENT_IN_HEURISTIC;
 
     auto_ptr<StatesToDelete> statesKept(new StatesToDelete());
 
