@@ -14,6 +14,8 @@ using std::set;
 
 namespace Planner {
 
+string threeDP(double d);
+
 #ifdef STOCHASTICDURATIONS
 class StochasticTimestampData;
 #endif

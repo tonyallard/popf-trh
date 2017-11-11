@@ -84,7 +84,8 @@ private:
 	std::list<PDDL::Proposition> getPendingActionRequiredObjectPropositions(
 			string actionName, std::set<PDDLObject> parameters);
 	std::string getConditions(const VAL::goal * goal, bool isForDurativeAction);
-	std::list<PDDL::TIL> getTILs(const Planner::MinimalState & state, double timestamp, 
+	std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> 
+		getTILs(const Planner::MinimalState & state, 
 			std::set<PDDLObject> & objectSymbolTable);
 	/*Methods to get condition literals*/
 	std::list<pair<PDDL::Proposition, std::pair<VAL::time_spec, bool> > > getConditions(

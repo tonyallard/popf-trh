@@ -11,6 +11,11 @@ include(UseDoxygen OPTIONAL)
 
 add_subdirectory(util)
 add_subdirectory(pddl)
+add_subdirectory(kk)
+add_subdirectory(stn)
+add_subdirectory(itc)
+add_subdirectory(executor)
+add_subdirectory(hRelax)
 add_subdirectory(TRH)
 
 #IF(NOT DISABLE_CLP)

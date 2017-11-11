@@ -1354,6 +1354,9 @@ public:
     static int getInstantiatedOpCount() {
         return instantiatedOps.size();
     }
+    static void addInstantiatedOp(instantiatedOp * op) {
+        instantiatedOps.push_back(op);
+    };
     static vector<pair<bool, bool> > getStaticLiterals() {
         return staticLiterals;
     };

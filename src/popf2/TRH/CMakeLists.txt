@@ -7,10 +7,11 @@ project(TRH)
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 set(libTRH_SRCS
+	PlannerExecutionReader.cpp
 	TRH.cpp
 )
 
 add_library(TRH ${libTRH_SRCS})
-target_link_libraries(TRH PDDL UTIL)
+target_link_libraries(TRH UTIL PDDL HRELAX)
 SET_TARGET_PROPERTIES(TRH PROPERTIES COMPILE_FLAGS "-DPOPF3ANALYSIS")
 

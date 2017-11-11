@@ -50,4 +50,10 @@ PDDL::Literal LiteralFactory::getLiteral(const Inst::Literal * aProposition, boo
 	return PDDL::Literal(proposition, positive);
 }
 
+PDDL::Literal LiteralFactory::getEmptyLiteral() {
+	PDDL::Proposition prop = PropositionFactory::getInstance()->
+		getEmptyProposition();
+	return Literal(prop, true);
+}
+
 }

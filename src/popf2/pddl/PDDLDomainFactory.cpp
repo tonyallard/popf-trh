@@ -70,9 +70,14 @@ PDDL::PDDLDomain PDDLDomainFactory::getDeTILedDomain(const VAL::domain * domain,
 	std::list<PDDL::Proposition> tilRequiredObjectsParameterised;
 	list<PDDL::Proposition> pendingActionRequiredObjects;
 
-	std::list<TIL> tils = getTILs(state, timestamp, domainObjectSymbolTable);
-	bool hasTils = tils.size();
+	std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap = 
+		getTILs(state, domainObjectSymbolTable);
+	bool hasTils = tilMap.size();
 	if (hasTils) {
+		std::list<PDDL::TIL> tils;
+		for(auto const& tmap: tilMap){
+    		tils.push_back(tmap.first);
+		}
 		deTILedActions = getdeTILedActions(tils, tilPredicates, tilGoalPredicates,
 				tilRequiredObjects, tilRequiredObjectsParameterised);
 	}
@@ -88,7 +93,7 @@ PDDL::PDDLDomain PDDLDomainFactory::getDeTILedDomain(const VAL::domain * domain,
 	list<string> actions = getActions(pendingActions, deTILedActions);
 
 	return PDDLDomain(name, requirements, types, predicates, functions,
-			constants, actions, tilPredicates, tilGoalPredicates, tilRequiredObjects,
+			constants, actions, tilMap, tilPredicates, tilGoalPredicates, tilRequiredObjects,
 			pendingActionRequiredObjects, domainObjectSymbolTable);
 }
 
@@ -496,7 +501,9 @@ std::list<PDDL::PendingAction> PDDLDomainFactory::getPendingActions(
 
 	for (; saItr != saItrEnd; saItr++) {
 
-		std::string name = PDDL::getActionName(saItr->first);
+		Inst::instantiatedOp* action = Planner::RPGBuilder::getInstantiatedOp(
+			saItr->first);
+		std::string name = PDDL::getOperatorName(action);
 		std::set<PDDLObject> parameters;
 
 		//For each action get its conditions
@@ -653,11 +660,10 @@ std::list<PDDL::Proposition> PDDLDomainFactory::getPendingActionRequiredObjectPr
 	return requiredObjects;
 }
 
-std::list<PDDL::TIL> PDDLDomainFactory::getTILs(
-		const Planner::MinimalState & state, double timestamp,
-		std::set<PDDLObject> & objectSymbolTable) {
+std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> PDDLDomainFactory::getTILs(
+		const Planner::MinimalState & state, std::set<PDDLObject> & objectSymbolTable) {
 
-	std::list<PDDL::TIL> tils;
+	std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap;
 	//Cycle thourgh normals TILs
 	vector<Planner::RPGBuilder::FakeTILAction*> theTILs = Planner::RPGBuilder::getTILVec();
 
@@ -665,38 +671,38 @@ std::list<PDDL::TIL> PDDLDomainFactory::getTILs(
 		const Planner::RPGBuilder::FakeTILAction * tilAction = theTILs[tilItr];
 
 		PDDL::extractParameters(tilAction, objectSymbolTable, constants);
-		PDDL::TIL til = PDDL::TILFactory::getInstance()->getTIL(*tilAction, timestamp, constants);
-		tils.push_back(til);
+		PDDL::TIL til = PDDL::TILFactory::getInstance()->getTIL(*tilAction, tilItr, constants);
+		tilMap.insert(pair<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *>(til, tilAction));
 	}
 
-	//Cycle through strange Pointless TILs
-	map<int, map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
-		Planner::LiteralLT> > optTILs = Planner::RPGBuilder::getPointlessTILVec();
-	map<int, map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
-		Planner::LiteralLT> >::const_iterator optTILItr = optTILs.begin();
-	for (; optTILItr != optTILs.end(); optTILItr++) {
-		double duration = Planner::RPGBuilder::getAllTimedInitialLiterals()[optTILItr->first]->duration;
-		Planner::LiteralSet addEffects;
-		Planner::LiteralSet delEffects;
+	// //Cycle through strange Pointless TILs
+	// map<int, map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
+	// 	Planner::LiteralLT> > optTILs = Planner::RPGBuilder::getPointlessTILVec();
+	// map<int, map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
+	// 	Planner::LiteralLT> >::const_iterator optTILItr = optTILs.begin();
+	// for (; optTILItr != optTILs.end(); optTILItr++) {
+	// 	double duration = Planner::RPGBuilder::getAllTimedInitialLiterals()[optTILItr->first]->duration;
+	// 	Planner::LiteralSet addEffects;
+	// 	Planner::LiteralSet delEffects;
 		
-		map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
-			Planner::LiteralLT>::const_iterator literalItr = optTILItr->second.begin();
-		for (; literalItr != optTILItr->second.end(); literalItr++) {
-			if ((literalItr->second == Planner::RPGBuilder::pointless_effect::PE_ADDED) ||
-				(literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED_THEN_ADDED)) {
-				addEffects.insert(literalItr->first);
-			} else if ((literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED) ||
-				(literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED_THEN_ADDED)) {
-				delEffects.insert(literalItr->first);
-			}
-		}
+	// 	map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
+	// 		Planner::LiteralLT>::const_iterator literalItr = optTILItr->second.begin();
+	// 	for (; literalItr != optTILItr->second.end(); literalItr++) {
+	// 		if ((literalItr->second == Planner::RPGBuilder::pointless_effect::PE_ADDED) ||
+	// 			(literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED_THEN_ADDED)) {
+	// 			addEffects.insert(literalItr->first);
+	// 		} else if ((literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED) ||
+	// 			(literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED_THEN_ADDED)) {
+	// 			delEffects.insert(literalItr->first);
+	// 		}
+	// 	}
 
-		Planner::RPGBuilder::FakeTILAction tilAction(duration, addEffects, delEffects);
-		PDDL::extractParameters(&tilAction, objectSymbolTable, constants);
-		PDDL::TIL til = PDDL::TILFactory::getInstance()->getTIL(tilAction, timestamp, constants);
-		tils.push_back(til);
-	}
-	return tils;
+	// 	Planner::RPGBuilder::FakeTILAction tilAction(duration, addEffects, delEffects);
+	// 	PDDL::extractParameters(&tilAction, objectSymbolTable, constants);
+	// 	PDDL::TIL til = PDDL::TILFactory::getInstance()->getTIL(tilAction, timestamp, constants);
+	// 	tils.push_back(til);
+	// }
+	return tilMap;
 }
 
 /**

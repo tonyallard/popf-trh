@@ -10,6 +10,7 @@
 
 #include <list>
 
+#include "../pddl/PDDLDomain.h"
 #include "../pddl/PDDLState.h"
 #include "../pddl/PDDLStateFactory.h"
 #include "../ExtendedMinimalState.h"
@@ -27,49 +28,43 @@ private:
 	static const string TEMP_FILE_PREFIX;
 	static const string TEMP_DOMAIN_SUFFIX;
 	static const string TEMP_FILE_EXT;
-	static const string H_VAL_DELIM;
-	static const string RELAXED_PLAN_SIZE_DELIM;
-	static const string H_STATES_EVAL_DELIM;
 	static const string H_PLAN_DELIM;
 	static const string TEMP_STATE_PATH;
 	static TRH * INSTANCE;
 
-	static const string H_PLAN_DELIM_START; 
-	static const string H_PLAN_DELIM_STOP;
+	/*Used to ensure unique state files per instance*/
+	const int trhInstanceID;
+	const string hCommand;
+	string stateFileName;
 
 	static int generateNewInstanceID();
-	
-	/*Used to ensure unique state files per instance*/
-	const int TRH_INSTANCE_ID;
-
 	//Singleton
-	TRH(int trhInstanceID) : TRH_INSTANCE_ID(trhInstanceID) {
-	};
-	TRH(TRH const & other) : TRH_INSTANCE_ID(generateNewInstanceID()){
+	TRH();
+	TRH(TRH const & other):trhInstanceID(other.trhInstanceID), 
+										hCommand(other.hCommand), 
+										stateFileName(other.stateFileName){
+
 	}
 	;
-	TRH& operator=(TRH const&) {
+	TRH operator=(TRH const& other) {
+		return TRH(other);
 	}
 	;
 
+	string runPlanner();
 	string buildCommand();
-	string writeTempState(const Planner::MinimalState & state,
-		std::list<Planner::FFEvent>& plan, double timestamp, double heuristic, 
-		PDDL::PDDLStateFactory pddlFactory);
+
+	void addRelaxedPlan(list<Planner::FFEvent> & proposedPlan, 
+			list<Planner::FFEvent> & relaxedPlan);
 	void writeBadState(const Planner::MinimalState & state,
 		std::list<Planner::FFEvent>& plan, double timestamp, double heuristic, 
 		PDDL::PDDLStateFactory pddlFactory, int stateNum);
-	void writeStateToFile(const Planner::MinimalState & state,
+	pair<PDDL::PDDLDomain, PDDL::PDDLState> writeStateToFile(const Planner::MinimalState & state,
 		std::list<Planner::FFEvent>& plan, double timestamp, double heuristic, 
-		PDDL::PDDLStateFactory pddlFactory, string fileName);
+		PDDL::PDDLStateFactory pddlFactory, const string & filename);
 	void removeTempState(string fileName);
+
 	list<Planner::FFEvent> getActions(list<Planner::FFEvent> & actionList);
-	list<string> getRelaxedPlanStr(const string & output);
-	list<Planner::ActionSegment> getRelaxedPlan(list<string> planStr);
-	map<double, Planner::ActionSegment> getRelaxedPlan(list<string> planStr, 
-		double timestamp);
-	list<Planner::FFEvent> getRelaxedEventList(list<string> planStr, 
-		double timestamp);
 	std::pair<Planner::MinimalState, list<Planner::FFEvent> > reprocessPlan(list<Planner::FFEvent> & oldSoln);
 	Planner::SearchQueueItem * applyTILsIfRequired(Planner::SearchQueueItem * currSQI, double timestamp);
 	static bool evaluateStateAndUpdatePlan(auto_ptr<Planner::SearchQueueItem> & succ,
@@ -81,13 +76,14 @@ private:
 
 public:
 	static TRH * getInstance();
+	static double TIME_SPENT_IN_HEURISTIC;
+	static double TIME_SPENT_IN_PRINTING_TO_FILE;
+	static double TIME_SPENT_CONVERTING_PDDL_STATE;
+	
 	pair<double, int> getHeuristic(Planner::ExtendedMinimalState & theState,
 		std::list<Planner::FFEvent>& plan, std::list<Planner::FFEvent> & now,
 		double timestamp, double heuristic, list<Planner::ActionSegment> & helpfulActions,
 		PDDL::PDDLStateFactory pddlFactory);
-	static double TIME_SPENT_IN_HEURISTIC;
-	static double TIME_SPENT_IN_PRINTING_TO_FILE;
-	static double TIME_SPENT_CONVERTING_PDDL_STATE;
 };
 }
 

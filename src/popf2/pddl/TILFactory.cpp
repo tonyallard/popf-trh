@@ -22,9 +22,8 @@ TILFactory * TILFactory::getInstance() {
 	return INSTANCE;
 }
 
-PDDL::TIL TILFactory::getTIL(Planner::RPGBuilder::FakeTILAction aTIL, double aTimestamp,
+PDDL::TIL TILFactory::getTIL(Planner::RPGBuilder::FakeTILAction aTIL, int tilIndex,
 		std::list<std::pair<std::string, std::string> > constants) {
-	double timestamp = aTIL.duration - aTimestamp;
 	std::list<PDDL::Proposition> addEffects;
 	std::list<PDDL::Proposition> delEffects;
 
@@ -54,7 +53,7 @@ PDDL::TIL TILFactory::getTIL(Planner::RPGBuilder::FakeTILAction aTIL, double aTi
 			getProposition(literal);
 		delEffects.push_back(lit);
 	}
-	return PDDL::TIL(addEffects, delEffects, timestamp, parameters);
+	return PDDL::TIL(tilIndex, addEffects, delEffects, parameters);
 }
 
 }

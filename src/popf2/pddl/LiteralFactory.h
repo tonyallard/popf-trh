@@ -27,6 +27,7 @@ public:
 	PDDL::Literal getLiteral(const Inst::Literal * aLiteral, bool positive);
 	std::list<PDDL::Literal> getLiterals(std::list<Inst::Literal*> * literals,
 		bool positive);
+	PDDL::Literal getEmptyLiteral();
 
 private:
 	//Singleton Instance

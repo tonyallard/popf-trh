@@ -1,21 +1,22 @@
 #include <stdlib.h>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <cstdio>
 #include <memory>
-#include <sstream>
 #include <limits>
 #include <random>
 
-#include "../util/Util.h"
 #include "TRH.h"
-#include "PDDLDomain.h"
-#include "PDDLState.h"
+#include "../util/Util.h"
+#include "PlannerExecutionReader.h"
+#include "../hRelax/HRelax.cpp"
+
 #include "PDDLDomainFactory.h"
-#include "PendingAction.h"
 #include "Proposition.h"
 #include "PDDLObject.h"
 #include "PDDLUtils.h"
+
 #include "../FFSolver.h"
 #include "instantiation.h"
 #include "../temporalanalysis.h"
@@ -23,26 +24,30 @@
 namespace TRH {
 
 TRH * TRH::INSTANCE = NULL;
+
 const char * TRH::H_CMD = "./lib/popf3-clp";
-const string TRH::TEMP_FILE_PATH = "/mnt/ramdisk/";//"/tmp/";
+const string TRH::TEMP_FILE_PATH = "";//"/mnt/ramdisk/";//"/tmp/";
 const string TRH::TEMP_FILE_PREFIX = "temp";
 const string TRH::TEMP_DOMAIN_SUFFIX = "-domain";
 const string TRH::TEMP_FILE_EXT = ".pddl";
-const string TRH::H_VAL_DELIM = "State Heuristic Value is: ";
-const string TRH::RELAXED_PLAN_SIZE_DELIM = "Relaxed plan length is: ";
-const string TRH::H_STATES_EVAL_DELIM = "; States evaluated: ";
+
 double TRH::TIME_SPENT_IN_HEURISTIC = 0.0;
 double TRH::TIME_SPENT_IN_PRINTING_TO_FILE = 0.0;
 double TRH::TIME_SPENT_CONVERTING_PDDL_STATE = 0.0;
 
-const string TRH::H_PLAN_DELIM_START = "=====Plan Start====="; 
-const string TRH::H_PLAN_DELIM_STOP = "=====Plan Stop=====";
-
 TRH * TRH::getInstance() {
 	if (!INSTANCE) {
-		INSTANCE = new TRH(generateNewInstanceID());
+		INSTANCE = new TRH();
 	}
 	return INSTANCE;
+}
+
+TRH::TRH() : 
+	trhInstanceID(generateNewInstanceID()),
+	hCommand(buildCommand()) {
+	ostringstream fileName;
+	fileName << TEMP_FILE_PREFIX << trhInstanceID;
+	stateFileName = fileName.str();
 }
 
 int TRH::generateNewInstanceID() {
@@ -50,7 +55,8 @@ int TRH::generateNewInstanceID() {
 	static std::default_random_engine generator(rd());
 	static std::uniform_int_distribution<int> distribution(0,
 		std::numeric_limits<int>::max());
-	return distribution(generator);
+	// return distribution(generator);
+	return 11;
 }
 
 pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
@@ -60,111 +66,91 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 
 	const Planner::MinimalState & state = theState.getInnerState();
 
+	pair<PDDL::PDDLDomain, PDDL::PDDLState> tempProb = 
+		writeStateToFile(state, header, timestamp, heuristic, pddlFactory, stateFileName);
+
 	Planner::FF::STATES_EVALUATED++;
-	string stateName = writeTempState(state, header, timestamp, heuristic, pddlFactory);
+	string result = runPlanner();
+	
+	//Read in the results of the relaxed plan
+	PlannerExecutionReader reader(result, tempProb.first.getTILMap());
+	Planner::FF::STATES_EVALUATED_IN_HEURISTIC += reader.getHeuristicStatesEvaluated();
+	if (!reader.isSolutionFound()) {
+		return std::make_pair (-1.0,  -1);
+	}
+
+	//Create the total plan
+	list<Planner::FFEvent> proposedPlan(header);
+	proposedPlan.insert(proposedPlan.end(), now.begin(), now.end());
+	addRelaxedPlan(proposedPlan, reader.getRelaxedPlan());
+	//Run relaxation heuristic on relaxed plan
+	hRelax::HRelax * relaxationHeuristic = hRelax::HRelax::getInstance();
+	pair<double, list<Planner::FFEvent> > hVal = relaxationHeuristic->getHeuristic(proposedPlan);
+	if (hVal.first == 0.0) {
+		std::pair<Planner::MinimalState, list<Planner::FFEvent> > solution = reprocessPlan(hVal.second);
+		Planner::FF::workingBestSolution.update(solution.second, solution.first.temporalConstraints, 
+			Planner::FF::evaluateMetric(solution.first, list<Planner::FFEvent>(), false));
+	} else {
+		helpfulActions.insert(helpfulActions.end(), reader.getHelpfulActions().begin(), 
+			reader.getHelpfulActions().end());
+	}
+	return std::make_pair (hVal.first, reader.getRelaxedPLanLength());
+}
+
+void TRH::addRelaxedPlan(list<Planner::FFEvent> & proposedPlan, list<Planner::FFEvent> & relaxedPlan) {
+	list<Planner::FFEvent>::iterator rPlanItr = relaxedPlan.begin();
+	for (; rPlanItr != relaxedPlan.end(); rPlanItr++) {
+		Planner::FFEvent event = *rPlanItr;
+		if (event.pairWithStep >= 0) {
+			if (event.time_spec == VAL::time_spec::E_AT_START){
+				event.pairWithStep = proposedPlan.size() + 1;
+			} else if (event.time_spec == VAL::time_spec::E_AT_END) {
+				event.pairWithStep = proposedPlan.size() - 1;
+			} else {
+				std::cerr << "This case not catered for.";
+				assert(false);
+			}
+		}
+		proposedPlan.push_back(event);
+	}
+}
+
+string TRH::runPlanner() {
 
 	clock_t begin_time = clock();
 
-	std::shared_ptr<FILE> pipe(popen(buildCommand().c_str(), "r"), pclose);
+	std::shared_ptr<FILE> pipe(popen(hCommand.c_str(), "r"), pclose);
 	if (!pipe)
-		return std::make_pair(-1.0, -1.0);
+		return "";
 	char buffer[128];
 	std::string result = "";
 	while (!feof(pipe.get())) {
 		if (fgets(buffer, 128, pipe.get()) != NULL)
-			// cout << buffer;
+			cout << buffer;
 			result += buffer;
 	}
 
 	TRH::TRH::TIME_SPENT_IN_HEURISTIC += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
-	removeTempState(stateName);
-	int pos = result.find(H_STATES_EVAL_DELIM);
-	if (pos != -1) {
-		int posEnd = result.find("\n", pos);
-		string statesEvalStr = result.substr(pos + H_STATES_EVAL_DELIM.size(), posEnd-(pos + H_STATES_EVAL_DELIM.size()));
-		int statesEval = stoi(statesEvalStr);
-		// printf("Heuristic States Eval: %s\n", statesEvalStr.c_str());
-		Planner::FF::STATES_EVALUATED_IN_HEURISTIC += statesEval;
-	}
-	pos = result.find(H_VAL_DELIM);
-	if (pos == -1) {
-		// cerr << "Problem was unsolvable - therefore heuristic value of -1.0" << endl;
-		static int badStateNum = 0;
-		//writeBadState(state, header, timestamp, heuristic, pddlFactory, badStateNum++);
-		return std::make_pair(-1.0, -1.0);
-	}
-	string h_val_str = result.substr(pos + H_VAL_DELIM.size());
-	// printf("%s\n", h_val_str.c_str());
-	double hval = stod(h_val_str);
-	
-	int relaxedPlanSize = 0;
-	pos = result.find(RELAXED_PLAN_SIZE_DELIM);
-	if (pos != -1) {
-		int posEnd = result.find("\n", pos);
-		string relaxedPlanSizeStr = result.substr(pos + RELAXED_PLAN_SIZE_DELIM.size(), 
-			posEnd-(pos + RELAXED_PLAN_SIZE_DELIM.size()));
-		relaxedPlanSize = stoi(relaxedPlanSizeStr);
-		// printf("Relaxed Plan Length: %s\n", relaxedPlanSizeStr.c_str());
-	}
-	if (hval == 0.0) {
-		list<string> relaxedPlanStr = getRelaxedPlanStr(result);
-		list<Planner::FFEvent> proposedPlan(getActions(header));
-
-		list<Planner::FFEvent> nowList = getActions(now);
-		proposedPlan.insert(proposedPlan.end(), nowList.begin(), nowList.end());
-
-		list<Planner::FFEvent> relaxedPlan = getRelaxedEventList(relaxedPlanStr, timestamp);
-		proposedPlan.insert(proposedPlan.end(), relaxedPlan.begin(), relaxedPlan.end());
-
-		std::pair<Planner::MinimalState,
-			list<Planner::FFEvent> > solution = reprocessPlan(proposedPlan);
-		Planner::FF::workingBestSolution.update(solution.second, solution.first.temporalConstraints, 
-			Planner::FF::evaluateMetric(solution.first, list<Planner::FFEvent>(), false));
-	} else if (Planner::FF::helpfulActions) {
-		list<string> relaxedPlanStr = getRelaxedPlanStr(result);
-		list<Planner::ActionSegment> relaxedPlanActions = getRelaxedPlan(relaxedPlanStr);
-		helpfulActions.insert(helpfulActions.end(), relaxedPlanActions.begin(), 
-			relaxedPlanActions.end());
-	}
-	return std::make_pair (hval, relaxedPlanSize);
+	// removeTempState(stateFileName);
+	return result;
 }
 
 string TRH::buildCommand() {
 	ostringstream cmd;
 	cmd << H_CMD << " " 
-		<< TEMP_FILE_PATH << TEMP_FILE_PREFIX << TRH_INSTANCE_ID 
+		<< TEMP_FILE_PATH << TEMP_FILE_PREFIX << trhInstanceID 
 			<< TEMP_DOMAIN_SUFFIX << TEMP_FILE_EXT
-		<< " " << TEMP_FILE_PATH << TEMP_FILE_PREFIX << TRH_INSTANCE_ID 
+		<< " " << TEMP_FILE_PATH << TEMP_FILE_PREFIX << trhInstanceID 
 			<< TEMP_FILE_EXT;
 	return cmd.str();
 }
-
-/**
- * Uses regex to extract all plan actions from the output.
- * Has been commented out as regex support was only added officially
- * in GCC 4.9. However, GCC 4.9 is incompatible with COIN-OR (mem fault)
- */
-//DEPRECATED: Until COIN-OR is compatible with GCC-4.9
-// list<string> TRH::getRelaxedPlanStr(const string & planStr) {
-// 	regex plan_reg("[[:digit:]]+\\.?[[:digit:]]*: \\([[:alnum:][:s:]\\-_]+\\)  \\[[[:digit:]]+\\.?[[:digit:]]*\\]");
-// 	smatch match;
-// 	list<string> relaxedPlanStr;
-// 	string testStr (planStr);
-// 	while (regex_search(testStr, match, plan_reg)) {
-// 		for (auto elm:match){
-// 			relaxedPlanStr.push_back(elm);
-// 			testStr = match.suffix().str();
-// 		}
-// 	}
-// 	return relaxedPlanStr;
-// }
 
 /**
  *
  * Runs through a list of FFEvent objects and returns
  * a list of the same objects without any TILs
  *
- * Used to remove TILs from a prefix for reprocessing
+ * Used to remove TILs fr`om a prefix for reprocessing
  *
  */
 list<Planner::FFEvent> TRH::getActions(list<Planner::FFEvent> & actionList) {
@@ -176,137 +162,6 @@ list<Planner::FFEvent> TRH::getActions(list<Planner::FFEvent> & actionList) {
 		}
 	}
 	return header;
-}
-
-list<string> TRH::getRelaxedPlanStr(const string & output) {
-	list<string> relaxedPlanStr;
-
-	int startPos = output.find(H_PLAN_DELIM_START);
-	int endPos = output.find(H_PLAN_DELIM_STOP);
-	string planSection = output.substr(startPos + H_PLAN_DELIM_START.size(), 
-		endPos-(startPos + H_PLAN_DELIM_START.size()));
-	// cout << "Relaxed Plan" << endl;
-	// cout << planSection << endl;
-	//Iterate through actions
-	std::istringstream iss(planSection);
-	for (std::string line; std::getline(iss, line); ){
-		//Guaranteed to be a double if this is an action
-		string firstFive = line.substr(0, 5);
-		if (Util::isDouble(firstFive.c_str())) {
-			// cout << line << endl;
-			relaxedPlanStr.push_back(line);
-		}
-	}
-	return relaxedPlanStr;
-}
-
-map<double, Planner::ActionSegment> TRH::getRelaxedPlan(list<string> planStr, 
-	double timestamp) {
-	map<double, Planner::ActionSegment> rPlan;
-
-	list<string>::const_iterator planStrItr = planStr.begin();
-	for (; planStrItr != planStr.end(); planStrItr++) {
-		string actionStr = *planStrItr;
-		int actionNameStartPos = actionStr.find("(");
-		int actionNameEndPos = actionStr.find(")") + 1;
-		string actionInstance = actionStr.substr(actionNameStartPos, 
-			actionNameEndPos - actionNameStartPos);
-		string actionName = actionInstance.substr(1, actionInstance.find(" ") - 1);
-		Inst::instantiatedOp * op = PDDL::getOperator(actionInstance);
-		
-		int startTimePos = actionStr.find(":");
-		double startTime = stod(actionStr.substr(0, startTimePos));
-		//Add the timestamp to the action to fit after the prefix
-		startTime += timestamp;
-
-		int actionDurationStartPos = actionStr.find("[") + 1;
-		int actionDurationEndPos = actionStr.find("]");
-		double duration = stod(actionStr.substr(actionDurationStartPos, 
-			actionDurationEndPos - actionDurationStartPos));
-
-		if (op != 0) {
-			Planner::ActionSegment start_snap_action = Planner::ActionSegment(op, 
-				VAL::E_AT_START, 0, Planner::RPGHeuristic::emptyIntList);
-			rPlan.insert(pair<double, Planner::ActionSegment>(startTime, start_snap_action));
-			if (!Planner::RPGBuilder::getRPGDEs(op->getID()).empty()) {
-				//Durative Action
-				Planner::ActionSegment end_snap_action = Planner::ActionSegment(op, 
-					VAL::E_AT_END, 0, Planner::RPGHeuristic::emptyIntList);
-				rPlan.insert(pair<double, Planner::ActionSegment>(startTime + duration, end_snap_action));
-			}
-		}
-	}
-	return rPlan;
-}
-
-list<Planner::ActionSegment> TRH::getRelaxedPlan(list<string> planStr) {
-	list<Planner::ActionSegment> rPlan;
-	// cout << "Helpful Actions" << endl;
-	list<string>::const_iterator planStrItr = planStr.begin();
-	for (; planStrItr != planStr.end(); planStrItr++) {
-		string actionStr = *planStrItr;
-		// cout << actionStr << endl;
-		int actionNameStartPos = actionStr.find("(");
-		int actionNameEndPos = actionStr.find(")") + 1;
-		string actionInstance = actionStr.substr(actionNameStartPos, 
-			actionNameEndPos - actionNameStartPos);
-		Inst::instantiatedOp * op = PDDL::getOperator(actionInstance);
-
-		if (op != 0) {
-			Planner::ActionSegment start_snap_action = Planner::ActionSegment(op, 
-				VAL::E_AT_START, 0, Planner::RPGHeuristic::emptyIntList);
-			rPlan.push_back(start_snap_action);
-			if (!Planner::RPGBuilder::getRPGDEs(op->getID()).empty()) {
-				//Durative Action
-				Planner::ActionSegment end_snap_action = Planner::ActionSegment(op, 
-					VAL::E_AT_END, 0, Planner::RPGHeuristic::emptyIntList);
-				rPlan.push_back(end_snap_action);
-			}
-		}
-	}
-	return rPlan;
-}
-
-list<Planner::FFEvent> TRH::getRelaxedEventList(list<string> planStr, 
-	double timestamp) {
-	list<Planner::FFEvent> rPlan;
-	
-	list<string>::const_iterator planStrItr = planStr.begin();
-	for (; planStrItr != planStr.end(); planStrItr++) {
-		string actionStr = *planStrItr;
-		int actionNameStartPos = actionStr.find("(");
-		int actionNameEndPos = actionStr.find(")") + 1;
-		string actionInstance = actionStr.substr(actionNameStartPos, 
-			actionNameEndPos - actionNameStartPos);
-		string actionName = actionInstance.substr(1, actionInstance.find(" ") - 1);
-		Inst::instantiatedOp * op = PDDL::getOperator(actionInstance);
-		
-		int startTimePos = actionStr.find(":");
-		double startTime = stod(actionStr.substr(0, startTimePos));
-		//Add the timestamp to the action to fit after the prefix
-		startTime += timestamp;
-
-		int actionDurationStartPos = actionStr.find("[") + 1;
-		int actionDurationEndPos = actionStr.find("]");
-		double duration = stod(actionStr.substr(actionDurationStartPos, 
-			actionDurationEndPos - actionDurationStartPos));
-
-		if (op != 0) {
-			Planner::FFEvent start_snap_action = Planner::FFEvent(op, 
-				startTime, startTime);
-			start_snap_action.lpTimestamp = startTime;
-			rPlan.push_back(start_snap_action);
-			if (!Planner::RPGBuilder::getRPGDEs(op->getID()).empty()) {
-				//Durative Action
-				double durActEndStart = startTime + duration;
-				Planner::FFEvent end_snap_action = Planner::FFEvent(op, 
-				rPlan.size() - 1, durActEndStart, durActEndStart);
-				end_snap_action.lpTimestamp = durActEndStart;
-				rPlan.push_back(end_snap_action);
-			}
-		}
-	}
-	return rPlan;
 }
 
 Planner::SearchQueueItem * TRH::applyTILsIfRequired(Planner::SearchQueueItem * currSQI, 
@@ -434,14 +289,16 @@ std::pair<Planner::MinimalState, list<Planner::FFEvent> > TRH::reprocessPlan(lis
 
 	for (int stepID = 0; oldSolnItr != oldSolnEnd; ++oldSolnItr, ++stepID) {
 		Planner::FFEvent * eventToApply = *oldSolnItr;
-
-		currSQI = applyTILsIfRequired(currSQI, eventToApply->lpTimestamp);
-		//Update divisionID / nextTIL
-		eventToApply->divisionID = currSQI->state()->getInnerState().nextTIL;
-
-		Planner::ActionSegment nextSeg(eventToApply->action, eventToApply->time_spec, 
-			eventToApply->divisionID, Planner::RPGHeuristic::emptyIntList);
-
+		Planner::ActionSegment nextSeg;
+		if (eventToApply->time_spec == VAL::time_spec::E_AT) {
+			int oldTIL = currSQI->state()->getEditableInnerState().nextTIL;
+			nextSeg = Planner::ActionSegment(0, VAL::E_AT, oldTIL, Planner::RPGHeuristic::emptyIntList);
+		} else {
+			//Update divisionID / nextTIL
+			eventToApply->divisionID = currSQI->state()->getInnerState().nextTIL;
+			nextSeg = Planner::ActionSegment(eventToApply->action, eventToApply->time_spec, 
+				eventToApply->divisionID, Planner::RPGHeuristic::emptyIntList);
+		}
 		if (stepID == lastStep) {
 			Planner::FF::scheduleToMetric = true;
 		}
@@ -589,36 +446,20 @@ bool TRH::evaluateStateAndUpdatePlan(auto_ptr<Planner::SearchQueueItem> & succ,
 	return true;
 }
 
-string TRH::writeTempState(const Planner::MinimalState & state,
-		std::list<Planner::FFEvent>& plan, double timestamp, double heuristic, 
-		PDDL::PDDLStateFactory pddlFactory) {
-	// static int oneShot = 0;
-	// if (oneShot++ > 1) {
-	// 	cerr << "Exiting..." << endl;
-	// 	exit(0);
-	// }
-
-	ostringstream stateFileName;
-	stateFileName << TEMP_FILE_PREFIX << TRH_INSTANCE_ID;
-	writeStateToFile(state, plan, timestamp, heuristic, 
-		pddlFactory, stateFileName.str());
-	return stateFileName.str();
-}
-
 void TRH::writeBadState(const Planner::MinimalState & state,
 		std::list<Planner::FFEvent>& plan, double timestamp, double heuristic, 
 		PDDL::PDDLStateFactory pddlFactory, int stateNum) {
 	
 	ostringstream stateFileName;
-	stateFileName << "BadState" << TRH_INSTANCE_ID << "-" << stateNum;
+	stateFileName << "BadState" << trhInstanceID << "-" << stateNum;
 	writeStateToFile(state, plan, timestamp, heuristic, 
 		pddlFactory, stateFileName.str());
 }
 
 
-void TRH::writeStateToFile(const Planner::MinimalState & state,
+pair<PDDL::PDDLDomain, PDDL::PDDLState> TRH::writeStateToFile(const Planner::MinimalState & state,
 	std::list<Planner::FFEvent>& plan, double timestamp, double heuristic, 
-	PDDL::PDDLStateFactory pddlFactory, string fileName) {
+	PDDL::PDDLStateFactory pddlFactory, const string & filename) {
 
 	clock_t begin_time = clock();
 
@@ -645,10 +486,11 @@ void TRH::writeStateToFile(const Planner::MinimalState & state,
 	//Write State/Domain to disk for heuristic computation
 	begin_time = clock();
 	
-	string domainFileName = fileName + TEMP_DOMAIN_SUFFIX;
-	pddlState.writeDeTILedStateToFile(TEMP_FILE_PATH, fileName);
+	string domainFileName = filename + TEMP_DOMAIN_SUFFIX;
+	pddlState.writeDeTILedStateToFile(TEMP_FILE_PATH, filename);
 	domain.writeToFile(TEMP_FILE_PATH, domainFileName);
 	TRH::TRH::TIME_SPENT_IN_PRINTING_TO_FILE += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
+	return pair<PDDL::PDDLDomain, PDDL::PDDLState>(domain, pddlState);
 }
 
 void TRH::removeTempState(string fileName) {

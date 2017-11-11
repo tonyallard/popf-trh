@@ -16,6 +16,7 @@ using namespace std;
 namespace PDDL {
 
 PropositionFactory * PropositionFactory::INSTANCE = NULL;
+const string PropositionFactory::EMPTY_PROPOSITION_NAME = "EMPTY_PROPOSITION";
 
 PropositionFactory * PropositionFactory::getInstance() {
 	if (!INSTANCE) {
@@ -25,11 +26,11 @@ PropositionFactory * PropositionFactory::getInstance() {
 }
 
 list<PDDL::Proposition> PropositionFactory::getPropositions(
-		const list<Inst::Literal*> * literals,
+		const list<Inst::Literal*> & literals,
 		bool isTemplate /* = false */, bool showType /*= false*/) {
 	list<PDDL::Proposition> pddlLiterals;
-	list<Inst::Literal*>::const_iterator litItr = literals->begin();
-	const list<Inst::Literal*>::const_iterator litItrEnd = literals->end();
+	list<Inst::Literal*>::const_iterator litItr = literals.begin();
+	const list<Inst::Literal*>::const_iterator litItrEnd = literals.end();
 	for (; litItr != litItrEnd; litItr++) {
 		PDDL::Proposition lit = getProposition(*litItr, isTemplate, showType);
 		pddlLiterals.push_back(lit);
@@ -68,6 +69,12 @@ PDDL::Proposition PropositionFactory::getGroundedProposition(
 	string name = prop->head->getName();
 	transform(name.begin(), name.end(), name.begin(), ::toupper);
 	list<string> parameters = getGroundedParameters(prop->args, env, showType);
+	return PDDL::Proposition(name, parameters);
+}
+
+PDDL::Proposition PropositionFactory::getEmptyProposition() {
+	string name = EMPTY_PROPOSITION_NAME;
+	list<string> parameters;
 	return PDDL::Proposition(name, parameters);
 }
 

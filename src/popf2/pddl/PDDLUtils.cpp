@@ -21,6 +21,7 @@
 
 #include "../globals.h"
 #include "../RPGBuilder.h"
+#include "../util/Util.h"
 #include "../../VALfiles/TimSupport.h"
 
 using namespace std;
@@ -463,32 +464,49 @@ std::map<PDDLObject, std::string> generateParameterTable(
 /**
  * returns the effects of an action which match the time qualified and sign
  */
-std::list<PDDL::Proposition> getActionEffects(int actionID,
-		VAL::time_spec timeQualifier, bool positive) {
+std::list<PDDL::Proposition> getActionEffects(const Planner::FFEvent * action, 
+	bool positive) {
+	
 	std::list<Inst::Literal*> effects;
 
 	//Depending on time spec (start or end) add required effects
-	if (timeQualifier == VAL::time_spec::E_AT_START) {
+	if (action->time_spec == VAL::time_spec::E_AT_START) {
+		int id = action->action->getID();
 		if (positive) {
-			effects = Planner::RPGBuilder::getStartPropositionAdds()[actionID];
+			effects = Planner::RPGBuilder::getStartPropositionAdds()[id];
 		} else {
 			effects =
-					Planner::RPGBuilder::getStartPropositionDeletes()[actionID];
+					Planner::RPGBuilder::getStartPropositionDeletes()[id];
 		}
-	} else if (timeQualifier == VAL::time_spec::E_AT_END) {
+	} else if (action->time_spec == VAL::time_spec::E_AT_END) {
+		int id = action->action->getID();
 		if (positive) {
-			effects = Planner::RPGBuilder::getEndPropositionAdds()[actionID];
+			effects = Planner::RPGBuilder::getEndPropositionAdds()[id];
 		} else {
-			effects = Planner::RPGBuilder::getEndPropositionDeletes()[actionID];
+			effects = Planner::RPGBuilder::getEndPropositionDeletes()[id];
+		}
+	} else if (action->time_spec == VAL::time_spec::E_AT) {
+		int tilID = action->divisionID;
+		if (positive) {
+			effects = Planner::RPGBuilder::getAllTimedInitialLiterals()[tilID]->addEffects;
+		} else {
+			effects = Planner::RPGBuilder::getAllTimedInitialLiterals()[tilID]->delEffects;
 		}
 	} else {
 		std::cerr << "This case not catered for.";
+		assert(false);
 	}
-	return PropositionFactory::getInstance()->getPropositions(&effects);
+	return PropositionFactory::getInstance()->getPropositions(effects);
 }
 
-std::list<PDDL::Literal> getActionConditions(int actionID,
-		VAL::time_spec timeQualifier) {
+std::list<PDDL::Literal> getActionConditions(const Planner::FFEvent * action) {
+
+	if (action->time_spec == VAL::time_spec::E_AT) {
+		//TILs have no conditions
+		return std::list<PDDL::Literal>();
+	}
+
+	int actionID = action->action->getID();
 	std::list<Inst::Literal*> positiveConditions;
 	std::list<Inst::Literal*> negativeConditions;
 	//Add invariant (over all) conditions regardless
@@ -505,7 +523,7 @@ std::list<PDDL::Literal> getActionConditions(int actionID,
 
 	//Depending on time spec (start or end) add required conditions
 
-	if (timeQualifier == VAL::time_spec::E_AT_START) {
+	if (action->time_spec == VAL::time_spec::E_AT_START) {
 		//Positive First
 		tmpConditions =
 				Planner::RPGBuilder::getStartPropositionalPreconditions()[actionID];
@@ -516,7 +534,7 @@ std::list<PDDL::Literal> getActionConditions(int actionID,
 				Planner::RPGBuilder::getStartNegativePropositionalPreconditions()[actionID];
 		negativeConditions.insert(negativeConditions.end(),
 				tmpConditions.begin(), tmpConditions.end());
-	} else if (timeQualifier == VAL::time_spec::E_AT_END) {
+	} else if (action->time_spec == VAL::time_spec::E_AT_END) {
 		//Positive First
 		tmpConditions =
 				Planner::RPGBuilder::getEndPropositionalPreconditions()[actionID];
@@ -529,6 +547,7 @@ std::list<PDDL::Literal> getActionConditions(int actionID,
 				tmpConditions.begin(), tmpConditions.end());
 	} else {
 		std::cerr << "This case not catered for.";
+		assert(false);
 	}
 
 	std::list<PDDL::Literal> literals;
@@ -540,10 +559,25 @@ std::list<PDDL::Literal> getActionConditions(int actionID,
 	return literals;
 }
 
-std::string getActionName(int actionNum) {
+std::string getActionName(const Planner::FFEvent * action) {
 	std::ostringstream output;
-	Inst::instantiatedOp* action = Planner::RPGBuilder::getInstantiatedOp(
-			actionNum);
+	if ((action->time_spec == VAL::time_spec::E_AT_START) ||
+		(action->time_spec == VAL::time_spec::E_AT_END)){
+		output << getOperatorName(action->action);		
+	} else if (action->time_spec == VAL::time_spec::E_AT) {
+		Planner::RPGBuilder::FakeTILAction * til =
+					Planner::RPGBuilder::getAllTimedInitialLiterals()[action->divisionID];
+		output << "at-" 
+			<< PDDL::TILFactory::getInstance()->getTIL(*til, til->duration).getName();
+	} else {
+		std::cerr << "This case not catered for.";
+		assert(false);		
+	}
+	return output.str();
+}
+
+std::string getOperatorName(Inst::instantiatedOp* action) {
+	ostringstream output;
 	output << action->getHead()->getName();
 	VAL::var_symbol_list::const_iterator paramItr =
 			action->forOp()->parameters->begin();
@@ -566,12 +600,6 @@ bool supported(const PDDL::Proposition * proposition,
 		}
 	}
 	return false;
-}
-
-bool isTILAction(std::string eventName, int minDur, int maxDur) {
-
-	int found = eventName.find(TIL_ACTION_PREFIX);
-	return ((found == 0) && (minDur == 0) && (maxDur == 0));
 }
 
 Inst::instantiatedOp * getOperator(std::string actionInstance) {
@@ -641,47 +669,45 @@ std::list<std::string> getPlanPrefix(const std::list<Planner::FFEvent>& plan) {
 	for (; eventItr != eventItrEnd; eventItr++) {
 		ostringstream name;
 		Inst::instantiatedOp* op = (*eventItr).action;
-		name << (*eventItr).lpTimestamp << ": ";
-		if (eventItr->time_spec == VAL::time_spec::E_AT) {
-			Planner::RPGBuilder::FakeTILAction * action =
-					Planner::RPGBuilder::getAllTimedInitialLiterals()[eventItr->divisionID];
-			name << "at " 
-				<< PDDL::TILFactory::getInstance()->getTIL(*action, 0.0).getName() << endl;
-		} else {
-			name << PDDL::getActionName(op->getID());
-		}
+		name << (*eventItr).lpTimestamp << ": " << getActionName(&(*eventItr));
 		prefix.push_back(name.str());
 	}
 	return prefix;
 }
 
+/**
+ * Is 'event' before parameter 2 (aka: 'before') in the plan
+ * note that this goes through the plan in reverse
+ */
 bool isAfter(const Planner::FFEvent * event, const Planner::FFEvent * after,
-		std::list<Planner::FFEvent> * plan) {
-	bool foundEvent = false;
-	std::list<Planner::FFEvent>::reverse_iterator eventItr = plan->rbegin();
-	const std::list<Planner::FFEvent>::reverse_iterator eventItrEnd =
-			plan->rend();
+		const std::list<Planner::FFEvent> & plan) {
+	std::list<Planner::FFEvent>::const_reverse_iterator eventItr = plan.rbegin();
+	const std::list<Planner::FFEvent>::const_reverse_iterator eventItrEnd =
+			plan.rend();
 	for (; eventItr != eventItrEnd; eventItr++) {
 		const Planner::FFEvent * ev = &(*eventItr);
 		if (ev == event) {
-			foundEvent = true;
+			return true;
 		} else if (ev == after) {
-			return foundEvent;
+			return false;
 		}
 	}
 	return false;
 }
+
+/**
+ * Is 'event' before parameter 2 (aka: 'before') in the plan
+ */
 bool isBefore(const Planner::FFEvent * event, const Planner::FFEvent * before,
-		std::list<Planner::FFEvent> * plan) {
-	bool foundEvent = false;
-	std::list<Planner::FFEvent>::const_iterator eventItr = plan->begin();
-	const std::list<Planner::FFEvent>::const_iterator eventItrEnd = plan->end();
+		const std::list<Planner::FFEvent> & plan) {
+	std::list<Planner::FFEvent>::const_iterator eventItr = plan.begin();
+	const std::list<Planner::FFEvent>::const_iterator eventItrEnd = plan.end();
 	for (; eventItr != eventItrEnd; eventItr++) {
 		const Planner::FFEvent * ev = &(*eventItr);
 		if (ev == event) {
-			foundEvent = true;
+			return true;
 		} else if (ev == before) {
-			return foundEvent;
+			return false;
 		}
 	}
 	return false;

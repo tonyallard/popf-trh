@@ -23,7 +23,7 @@ public:
 
 	static PropositionFactory * getInstance();
 
-	std::list<PDDL::Proposition> getPropositions(const std::list<Inst::Literal*> * literals,
+	std::list<PDDL::Proposition> getPropositions(const std::list<Inst::Literal*> & literals,
 			bool isTemplate = false, bool showType = false);
 	PDDL::Proposition getProposition(const VAL::pred_decl * predicate);
 	PDDL::Proposition getProposition(const Inst::Literal * aLiteral,
@@ -37,9 +37,12 @@ public:
 	PDDL::Proposition getGroundedProposition(
 			const VAL::proposition * prop, VAL::FastEnvironment * env, bool showType);
 
+	PDDL::Proposition getEmptyProposition();
+
 private:
 	//Singleton Instance
 	static PropositionFactory * INSTANCE;
+	static const string EMPTY_PROPOSITION_NAME;
 	
 	//Private constructor
 	PropositionFactory(){};
