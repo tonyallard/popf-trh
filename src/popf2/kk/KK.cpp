@@ -82,9 +82,12 @@ std::set<const Planner::FFEvent *> KK::findAllThreateningActions(
 	const std::list<Planner::FFEvent>::const_iterator eventItrEnd = plan.end();
 	for (; eventItr != eventItrEnd; eventItr++) {
 		const Planner::FFEvent * event = &(*eventItr);
-		if (((event != causalLink->first) && (event != causalLink->third))
-				&& ((event->action != causalLink->first->action)
-						&& (event->action != causalLink->third->action))) {
+		if ((event != causalLink->first) && (event != causalLink->third)) {
+			if ((event->time_spec != VAL::time_spec::E_AT)
+					&& ((event->action == causalLink->first->action)
+					|| (event->action == causalLink->third->action))) {
+				continue;
+			}
 			if (KK::doesEventThreatenCausalLink(event, &causalLink->second)) {
 				threateningActions.insert(event);
 			}

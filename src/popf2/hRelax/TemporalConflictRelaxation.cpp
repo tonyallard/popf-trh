@@ -82,6 +82,7 @@ map<int, double> TemporalConflictRelaxation::solve() {
 	
 	//Minimise the objective function
 	model->setMaximiseObjective(false);
+	model->hush();
 	//Solve 
 	model->solve(false);
 	// cout << "We Finished, size: " << objFuncSize << endl;

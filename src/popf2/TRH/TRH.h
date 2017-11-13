@@ -64,9 +64,7 @@ private:
 		PDDL::PDDLStateFactory pddlFactory, const string & filename);
 	void removeTempState(string fileName);
 
-	list<Planner::FFEvent> getActions(list<Planner::FFEvent> & actionList);
 	std::pair<Planner::MinimalState, list<Planner::FFEvent> > reprocessPlan(list<Planner::FFEvent> & oldSoln);
-	Planner::SearchQueueItem * applyTILsIfRequired(Planner::SearchQueueItem * currSQI, double timestamp);
 	static bool evaluateStateAndUpdatePlan(auto_ptr<Planner::SearchQueueItem> & succ,
 		const Planner::ActionSegment & actionToBeApplied,
 		Planner::ExtendedMinimalState & state, 

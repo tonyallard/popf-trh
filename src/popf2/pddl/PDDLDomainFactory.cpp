@@ -674,34 +674,6 @@ std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> PDDLDomainFactor
 		PDDL::TIL til = PDDL::TILFactory::getInstance()->getTIL(*tilAction, tilItr, constants);
 		tilMap.insert(pair<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *>(til, tilAction));
 	}
-
-	// //Cycle through strange Pointless TILs
-	// map<int, map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
-	// 	Planner::LiteralLT> > optTILs = Planner::RPGBuilder::getPointlessTILVec();
-	// map<int, map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
-	// 	Planner::LiteralLT> >::const_iterator optTILItr = optTILs.begin();
-	// for (; optTILItr != optTILs.end(); optTILItr++) {
-	// 	double duration = Planner::RPGBuilder::getAllTimedInitialLiterals()[optTILItr->first]->duration;
-	// 	Planner::LiteralSet addEffects;
-	// 	Planner::LiteralSet delEffects;
-		
-	// 	map<Inst::Literal*, Planner::RPGBuilder::pointless_effect, 
-	// 		Planner::LiteralLT>::const_iterator literalItr = optTILItr->second.begin();
-	// 	for (; literalItr != optTILItr->second.end(); literalItr++) {
-	// 		if ((literalItr->second == Planner::RPGBuilder::pointless_effect::PE_ADDED) ||
-	// 			(literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED_THEN_ADDED)) {
-	// 			addEffects.insert(literalItr->first);
-	// 		} else if ((literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED) ||
-	// 			(literalItr->second == Planner::RPGBuilder::pointless_effect::PE_DELETED_THEN_ADDED)) {
-	// 			delEffects.insert(literalItr->first);
-	// 		}
-	// 	}
-
-	// 	Planner::RPGBuilder::FakeTILAction tilAction(duration, addEffects, delEffects);
-	// 	PDDL::extractParameters(&tilAction, objectSymbolTable, constants);
-	// 	PDDL::TIL til = PDDL::TILFactory::getInstance()->getTIL(tilAction, timestamp, constants);
-	// 	tils.push_back(til);
-	// }
 	return tilMap;
 }
 

@@ -86,7 +86,11 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	//Run relaxation heuristic on relaxed plan
 	hRelax::HRelax * relaxationHeuristic = hRelax::HRelax::getInstance();
 	pair<double, list<Planner::FFEvent> > hVal = relaxationHeuristic->getHeuristic(proposedPlan);
+	// cout << hVal.first << endl;
+	// exit(0);
 	if (hVal.first == 0.0) {
+		// cout << "Executed Plan" << endl;
+		// Planner::FFEvent::printPlan(proposedPlan);
 		std::pair<Planner::MinimalState, list<Planner::FFEvent> > solution = reprocessPlan(hVal.second);
 		Planner::FF::workingBestSolution.update(solution.second, solution.first.temporalConstraints, 
 			Planner::FF::evaluateMetric(solution.first, list<Planner::FFEvent>(), false));
@@ -126,7 +130,7 @@ string TRH::runPlanner() {
 	std::string result = "";
 	while (!feof(pipe.get())) {
 		if (fgets(buffer, 128, pipe.get()) != NULL)
-			cout << buffer;
+			// cout << buffer;
 			result += buffer;
 	}
 
@@ -143,56 +147,6 @@ string TRH::buildCommand() {
 		<< " " << TEMP_FILE_PATH << TEMP_FILE_PREFIX << trhInstanceID 
 			<< TEMP_FILE_EXT;
 	return cmd.str();
-}
-
-/**
- *
- * Runs through a list of FFEvent objects and returns
- * a list of the same objects without any TILs
- *
- * Used to remove TILs fr`om a prefix for reprocessing
- *
- */
-list<Planner::FFEvent> TRH::getActions(list<Planner::FFEvent> & actionList) {
-	list<Planner::FFEvent> header;
-	list<Planner::FFEvent>::const_iterator actionItr = actionList.begin();
-	for (; actionItr != actionList.end(); actionItr++) {
-		if (actionItr->time_spec != VAL::time_spec::E_AT) {
-			header.push_back(*actionItr);
-		}
-	}
-	return header;
-}
-
-Planner::SearchQueueItem * TRH::applyTILsIfRequired(Planner::SearchQueueItem * currSQI, 
-		double timestamp) {
-
-	int numTILs = Planner::RPGBuilder::timedInitialLiteralsVector.size();
-	
-	for (int i = currSQI->state()->getInnerState().nextTIL; i < numTILs; i++) {
-
-		Planner::RPGBuilder::FakeTILAction * til = Planner::RPGBuilder::timedInitialLiteralsVector[i];
-		if (til->duration <= timestamp) {
-			//It is time for this til update
-			int oldTIL = currSQI->state()->getEditableInnerState().nextTIL;
-			Planner::ActionSegment tempSeg(0, VAL::E_AT, oldTIL, Planner::RPGHeuristic::emptyIntList);
-			auto_ptr<Planner::SearchQueueItem> succ = auto_ptr<Planner::SearchQueueItem>(new 
-				Planner::SearchQueueItem(Planner::FF::applyActionToState(tempSeg, *(currSQI->state())), true));
-
-			const auto_ptr<Planner::ParentData> incrementalData(
-					Planner::FF::allowCompressionSafeScheduler ? 0 : Planner::LPScheduler::prime(currSQI->plan, 
-					currSQI->state()->getInnerState().temporalConstraints, currSQI->state()->startEventQueue));
-
-			evaluateStateAndUpdatePlan(succ, tempSeg,  *(succ->state()), currSQI->state(), 
-					incrementalData.get(), currSQI->plan);
-			currSQI = succ.release();
-
-		} else if (til->duration > timestamp) {
-			//It is not yet time for this TIL
-			return currSQI;
-		}
-	}
-	return currSQI;
 }
 
 std::pair<Planner::MinimalState, list<Planner::FFEvent> > TRH::reprocessPlan(list<Planner::FFEvent> & oldSoln)
@@ -289,6 +243,8 @@ std::pair<Planner::MinimalState, list<Planner::FFEvent> > TRH::reprocessPlan(lis
 
 	for (int stepID = 0; oldSolnItr != oldSolnEnd; ++oldSolnItr, ++stepID) {
 		Planner::FFEvent * eventToApply = *oldSolnItr;
+		// cout << "Applying: " << PDDL::getActionName(eventToApply) << "-" 
+		// 	<< eventToApply->time_spec << endl;
 		Planner::ActionSegment nextSeg;
 		if (eventToApply->time_spec == VAL::time_spec::E_AT) {
 			int oldTIL = currSQI->state()->getEditableInnerState().nextTIL;
@@ -312,7 +268,7 @@ std::pair<Planner::MinimalState, list<Planner::FFEvent> > TRH::reprocessPlan(lis
 		succ->heuristicValue.makespan = currSQI->heuristicValue.makespan;
 
 		evaluateStateAndUpdatePlan(succ, nextSeg, *(succ->state()), currSQI->state(), incrementalData.get(), currSQI->plan);
-
+		// Planner::FFEvent::printPlan(succ->plan);
 		delete currSQI;
 		currSQI = succ.release();
 

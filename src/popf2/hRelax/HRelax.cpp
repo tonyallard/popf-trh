@@ -37,7 +37,7 @@ HRelax * HRelax::getInstance() {
 pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FFEvent> & plan) {
 	//Create Dummy Initial Event @ t_0 for STN
 	Planner::FFEvent * initialEvent = createInitialEvent();
-	
+
 	//Determine Plan De-Ordering
     ::KK::KK * deordAlg = ::KK::KK::getInstance();
 	std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > orderingConstraints =
@@ -59,6 +59,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 	//Re-tighten TIL constraint
 	// cout << "There are " << tilEvents.size() << " TIL actions." << std::endl;
 	reAddTemporalConstraintsToTIL(stn, plan, initialEvent);
+	// cout << stn << endl;
 
 	// Re-check consistency --> if yes then heuristic is 0
 	consistent = stn.isConsistent();
