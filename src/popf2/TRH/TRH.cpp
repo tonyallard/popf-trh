@@ -26,7 +26,7 @@ namespace TRH {
 TRH * TRH::INSTANCE = NULL;
 
 const char * TRH::H_CMD = "./lib/popf3-clp";
-const string TRH::TEMP_FILE_PATH = "";//"/mnt/ramdisk/";//"/tmp/";
+const string TRH::TEMP_FILE_PATH = "/mnt/ramdisk/";//"/tmp/";
 const string TRH::TEMP_FILE_PREFIX = "temp";
 const string TRH::TEMP_DOMAIN_SUFFIX = "-domain";
 const string TRH::TEMP_FILE_EXT = ".pddl";
@@ -55,8 +55,7 @@ int TRH::generateNewInstanceID() {
 	static std::default_random_engine generator(rd());
 	static std::uniform_int_distribution<int> distribution(0,
 		std::numeric_limits<int>::max());
-	// return distribution(generator);
-	return 11;
+	return distribution(generator);
 }
 
 pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
@@ -135,7 +134,7 @@ string TRH::runPlanner() {
 	}
 
 	TRH::TRH::TIME_SPENT_IN_HEURISTIC += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
-	// removeTempState(stateFileName);
+	removeTempState(stateFileName);
 	return result;
 }
 
