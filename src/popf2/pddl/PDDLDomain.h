@@ -18,8 +18,6 @@
 #include "PDDLObject.h"
 #include "TIL.h"
 
-#include "../RPGBuilder.h"
-
 using namespace std;
 
 namespace PDDL {
@@ -39,7 +37,7 @@ private:
 	list<PDDL::Proposition> tilRequiredObjects;
 	set<PDDLObject> domainObjectSymbolTable;
 	list<PDDL::Proposition> pendingActionRequiredObjects;
-	std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap;
+	std::list<PDDL::TIL> tils;
 
 	string getHeaderString() const;
 	string getRequirementsString() const;
@@ -67,14 +65,14 @@ public:
 					list<PDDL::Proposition> functions, 
 					std::list<std::pair<std::string, std::string> > constants, 
 					list<std::string> actions,
-					std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap, 
+					std::list<PDDL::TIL> tils, 
 					list<PDDL::Proposition> tilPredicates, list<PDDL::Proposition> tilGoalPredicates, 
 					list<PDDL::Proposition> tilRequiredObjects,	
 					list<PDDL::Proposition> pendingActionRequiredObjects, 
 					set<PDDLObject> domainObjectSymbolTable) :
 					name(name), requirements(requirements), types(types),
 					predicates(predicates), functions(functions), 
-					constants(constants), actions(actions), tilMap(tilMap),
+					constants(constants), actions(actions), tils(tils),
 					tilPredicates(tilPredicates), tilGoalPredicates(tilGoalPredicates),
 					tilRequiredObjects(tilRequiredObjects), pendingActionRequiredObjects(pendingActionRequiredObjects),
 					domainObjectSymbolTable(domainObjectSymbolTable) {};
@@ -85,7 +83,7 @@ public:
 	inline const list<PDDL::Proposition> & getFunctions() {return functions;}
 	inline const list<pair<string, string> > & getConstants() {return constants;}
 	inline const list<std::string> & getActions() {return actions;}
-	inline const std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> & getTILMap() {return tilMap;}
+	inline const std::list<PDDL::TIL> & getTILs() {return tils;}
 	inline const list<PDDL::Proposition> & getTILGoalPredicates() {return tilGoalPredicates;}
 	inline const list<PDDL::Proposition> & getTILPredicates() {return tilPredicates;}
 	inline const list<PDDL::Proposition> & getTILRequiredObjects() {return tilRequiredObjects;}

@@ -72,7 +72,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	string result = runPlanner();
 	
 	//Read in the results of the relaxed plan
-	PlannerExecutionReader reader(result, tempProb.first.getTILMap());
+	PlannerExecutionReader reader(result, tempProb.first.getTILs());
 	Planner::FF::STATES_EVALUATED_IN_HEURISTIC += reader.getHeuristicStatesEvaluated();
 	if (!reader.isSolutionFound()) {
 		return std::make_pair (-1.0,  -1);
@@ -93,9 +93,10 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 		std::pair<Planner::MinimalState, list<Planner::FFEvent> > solution = reprocessPlan(hVal.second);
 		Planner::FF::workingBestSolution.update(solution.second, solution.first.temporalConstraints, 
 			Planner::FF::evaluateMetric(solution.first, list<Planner::FFEvent>(), false));
-	} else {
+	} else if (Planner::FF::helpfulActions) {
 		helpfulActions.insert(helpfulActions.end(), reader.getHelpfulActions().begin(), 
 			reader.getHelpfulActions().end());
+		cout << "helpfulActions: " << helpfulActions.size() << endl;
 	}
 	return std::make_pair (hVal.first, reader.getRelaxedPLanLength());
 }

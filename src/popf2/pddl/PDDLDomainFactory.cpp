@@ -70,14 +70,9 @@ PDDL::PDDLDomain PDDLDomainFactory::getDeTILedDomain(const VAL::domain * domain,
 	std::list<PDDL::Proposition> tilRequiredObjectsParameterised;
 	list<PDDL::Proposition> pendingActionRequiredObjects;
 
-	std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap = 
-		getTILs(state, domainObjectSymbolTable);
-	bool hasTils = tilMap.size();
+	std::list<PDDL::TIL> tils = getTILs(state, domainObjectSymbolTable);
+	bool hasTils = tils.size();
 	if (hasTils) {
-		std::list<PDDL::TIL> tils;
-		for(auto const& tmap: tilMap){
-    		tils.push_back(tmap.first);
-		}
 		deTILedActions = getdeTILedActions(tils, tilPredicates, tilGoalPredicates,
 				tilRequiredObjects, tilRequiredObjectsParameterised);
 	}
@@ -93,7 +88,7 @@ PDDL::PDDLDomain PDDLDomainFactory::getDeTILedDomain(const VAL::domain * domain,
 	list<string> actions = getActions(pendingActions, deTILedActions);
 
 	return PDDLDomain(name, requirements, types, predicates, functions,
-			constants, actions, tilMap, tilPredicates, tilGoalPredicates, tilRequiredObjects,
+			constants, actions, tils, tilPredicates, tilGoalPredicates, tilRequiredObjects,
 			pendingActionRequiredObjects, domainObjectSymbolTable);
 }
 
@@ -660,10 +655,10 @@ std::list<PDDL::Proposition> PDDLDomainFactory::getPendingActionRequiredObjectPr
 	return requiredObjects;
 }
 
-std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> PDDLDomainFactory::getTILs(
+std::list<PDDL::TIL> PDDLDomainFactory::getTILs(
 		const Planner::MinimalState & state, std::set<PDDLObject> & objectSymbolTable) {
 
-	std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap;
+	std::list<PDDL::TIL> tils;
 	//Cycle thourgh normals TILs
 	vector<Planner::RPGBuilder::FakeTILAction*> theTILs = Planner::RPGBuilder::getTILVec();
 
@@ -672,9 +667,9 @@ std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> PDDLDomainFactor
 
 		PDDL::extractParameters(tilAction, objectSymbolTable, constants);
 		PDDL::TIL til = PDDL::TILFactory::getInstance()->getTIL(*tilAction, tilItr, constants);
-		tilMap.insert(pair<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *>(til, tilAction));
+		tils.push_back(til);
 	}
-	return tilMap;
+	return tils;
 }
 
 /**

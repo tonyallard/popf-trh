@@ -14,15 +14,15 @@ const string PlannerExecutionReader::H_PLAN_DELIM_START = "=====Plan Start====="
 const string PlannerExecutionReader::H_PLAN_DELIM_STOP = "=====Plan Stop=====";
 
 PlannerExecutionReader::PlannerExecutionReader(string plannerOutput, 
-	std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap) {
+	const std::list<PDDL::TIL> & tils) {
 
 	statesEvaluatedInHeuristic = getHeuristicStatesEvaluated(plannerOutput);
 	relaxedPlanSize = getRelaxedPLanLength(plannerOutput);
 	solutionFound = getIsSolutionFound(plannerOutput);
 	if (relaxedPlanSize > 0) {
 		list<string> relaxedPlanStr = getRelaxedPlanStr(plannerOutput);
-		relaxedPlan = getRelaxedPlan(relaxedPlanStr, tilMap);
-		helpfulActions = getHelpfulActions(relaxedPlanStr);
+		relaxedPlan = getRelaxedPlan(relaxedPlanStr, tils);
+		helpfulActions = getHelpfulActions(relaxedPlan);
 	}
 }
 
@@ -78,36 +78,24 @@ list<string> PlannerExecutionReader::getRelaxedPlanStr(const string & output) {
 	return relaxedPlanStr;
 }
 
-list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(list<string> planStr) {
-	list<Planner::ActionSegment> rPlan;
+list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(const list<Planner::FFEvent> & plan) {
+	list<Planner::ActionSegment> helpfulActions;
 	// cout << "Helpful Actions" << endl;
-	list<string>::const_iterator planStrItr = planStr.begin();
-	for (; planStrItr != planStr.end(); planStrItr++) {
-		string actionStr = *planStrItr;
+	list<Planner::FFEvent>::const_iterator planItr = plan.begin();
+	for (; planItr != plan.end(); planItr++) {
 		// cout << actionStr << endl;
-		int actionNameStartPos = actionStr.find("(");
-		int actionNameEndPos = actionStr.find(")") + 1;
-		string actionInstance = actionStr.substr(actionNameStartPos, 
-			actionNameEndPos - actionNameStartPos);
-		Inst::instantiatedOp * op = PDDL::getOperator(actionInstance);
-
-		if (op != 0) {
-			Planner::ActionSegment start_snap_action = Planner::ActionSegment(op, 
-				VAL::E_AT_START, 0, Planner::RPGHeuristic::emptyIntList);
-			rPlan.push_back(start_snap_action);
-			if (!Planner::RPGBuilder::getRPGDEs(op->getID()).empty()) {
-				//Durative Action
-				Planner::ActionSegment end_snap_action = Planner::ActionSegment(op, 
-					VAL::E_AT_END, 0, Planner::RPGHeuristic::emptyIntList);
-				rPlan.push_back(end_snap_action);
-			}
+		if ((planItr->time_spec == VAL::time_spec::E_AT_START) || 
+			(planItr->time_spec == VAL::time_spec::E_AT_START))  {
+			Planner::ActionSegment act(planItr->action, planItr->time_spec, 
+				planItr->divisionID, Planner::RPGHeuristic::emptyIntList);
+			helpfulActions.push_back(act);
 		}
 	}
-	return rPlan;
+	return helpfulActions;
 }
 
 list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planStr, 
-	std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap) {
+	const std::list<PDDL::TIL> & tils) {
 	list<Planner::FFEvent> rPlan;
 
 	list<string>::const_iterator planStrItr = planStr.begin();
@@ -151,15 +139,14 @@ list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planS
 				rPlan.push_back(end_snap_action);
 			}
 		} else { //Check if it is a TIL
-			std::map<PDDL::TIL, 
-				const Planner::RPGBuilder::FakeTILAction *>::const_iterator tilItr = tilMap.begin();
-			for (; tilItr != tilMap.end(); tilItr++) {
+			std::list<PDDL::TIL>::const_iterator tilItr = tils.begin();
+			for (; tilItr != tils.end(); tilItr++) {
 				//case insensitive find
-				string tilName = tilItr->first.getName();
+				string tilName = tilItr->getName();
 				transform(tilName.begin(), tilName.end(), tilName.begin(), ::toupper);
 				transform(actionStr.begin(), actionStr.end(), actionStr.begin(), ::toupper);
 				if (actionStr.find(tilName) != std::string::npos) {
-					Planner::FFEvent til_action(tilItr->first.getTILIndex());
+					Planner::FFEvent til_action(tilItr->getTILIndex());
 					til_action.lpTimestamp = startTime;
 					rPlan.push_back(til_action);
 

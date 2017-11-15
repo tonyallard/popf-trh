@@ -41,13 +41,13 @@ private:
 	int getHeuristicStatesEvaluated(const string & plannerOutput);
 	int getRelaxedPLanLength(const string & plannerOutput);
 	list<string> getRelaxedPlanStr(const string & output);
-	list<Planner::ActionSegment> getHelpfulActions(list<string> planStr);
+	list<Planner::ActionSegment> getHelpfulActions(const list<Planner::FFEvent> & plan);
 	list<Planner::FFEvent> getRelaxedPlan(list<string> planStr, 
-		std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap);
+		const std::list<PDDL::TIL> & tils);
 	bool getIsSolutionFound(const string & plannerOutput);
 public:
 	PlannerExecutionReader(string plannerOutput, 
-		std::map<PDDL::TIL, const Planner::RPGBuilder::FakeTILAction *> tilMap);
+		const std::list<PDDL::TIL> & tils);
 
 	inline int getHeuristicStatesEvaluated() {
 		return statesEvaluatedInHeuristic;
