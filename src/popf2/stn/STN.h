@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_STN_STN_H_
-#define COLIN_STN_STN_H_
+#ifndef __STN_STN_H_
+#define __STN_STN_H_
 
 #include <vector>
 #include <set>
@@ -185,4 +185,4 @@ public:
 
 }
 
-#endif /* COLIN_STN_STN_H_ */
+#endif /* __STN_STN_H_ */

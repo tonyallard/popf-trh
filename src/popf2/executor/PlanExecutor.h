@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_EXECUTOR_PLANEXECUTOR_H_
-#define COLIN_EXECUTOR_PLANEXECUTOR_H_
+#ifndef __EXECUTOR_PLANEXECUTOR_H_
+#define __EXECUTOR_PLANEXECUTOR_H_
 
 #include <set>
 #include <list>
@@ -52,4 +52,4 @@ public:
 
 }
 
-#endif /* COLIN_EXECUTOR_PLANEXECUTOR_H_ */
+#endif /* __EXECUTOR_PLANEXECUTOR_H_ */

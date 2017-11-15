@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_HRELAX_HRELAX_H_
-#define COLIN_HRELAX_HRELAX_H_
+#ifndef __HRELAX_HRELAX_H_
+#define __HRELAX_HRELAX_H_
 
 #include <list>
 #include <set>
@@ -60,4 +60,4 @@ public:
 
 }
 
-#endif /* COLIN_HRELAX_HRELAX_H_ */
+#endif /* __HRELAX_HRELAX_H_ */

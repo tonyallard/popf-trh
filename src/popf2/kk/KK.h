@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_KK_KK_H_
-#define COLIN_KK_KK_H_
+#ifndef __KK_KK_H_
+#define __KK_KK_H_
 
 #include <list>
 #include <set>
@@ -59,4 +59,4 @@ public:
 
 }
 
-#endif /* COLIN_KK_KK_H_ */
+#endif /* __KK_KK_H_ */

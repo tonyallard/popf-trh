@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_STN_COLINSTNIMPL_H_
-#define COLIN_STN_COLINSTNIMPL_H_
+#ifndef __STN_COLINSTNIMPL_H_
+#define __STN_COLINSTNIMPL_H_
 
 #include "STN.h"
 #include "../FFEvent.h"
@@ -50,4 +50,4 @@ public:
 
 
 
-#endif /* COLIN_STN_COLINSTNIMPL_H_ */
+#endif /* __STN_COLINSTNIMPL_H_ */

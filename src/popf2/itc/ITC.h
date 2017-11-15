@@ -5,8 +5,8 @@
  *      Author: tony
  */
 
-#ifndef COLIN_ITC_ITC_H_
-#define COLIN_ITC_ITC_H_
+#ifndef __ITC_ITC_H_
+#define __ITC_ITC_H_
 
 #include <map>
 #include <vector>
@@ -77,4 +77,4 @@ public:
 
 }
 
-#endif /* COLIN_ITC_ITC_H_ */
+#endif /* __ITC_ITC_H_ */

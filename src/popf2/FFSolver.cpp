@@ -3,7 +3,6 @@
 #include "globals.h"
 #include "numericanalysis.h"
 #include "temporalanalysis.h"
-#include "HTrio.h"
 
 #include "compressionsafescheduler.h"
 #include "lpscheduler.h"

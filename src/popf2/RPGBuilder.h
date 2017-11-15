@@ -977,6 +977,7 @@ protected:
     static vector<list<int> > mentionedInFluentInvariants;
 
     static list<FakeTILAction> timedInitialLiterals;
+    static vector<FakeTILAction*> timedInitialLiteralsVector;
 
     static list<FakeTILAction> optimisationTimedInitialLiterals;
     static vector<FakeTILAction*> optimisationTimedInitialLiteralsVector;
@@ -1120,8 +1121,7 @@ protected:
 
 public:
 
-    
-    static vector<FakeTILAction*> timedInitialLiteralsVector;
+
     static pair<bool, bool> & isStatic(Literal* l);
 
     static void simplify(pair<list<double>, list<int> > & s);
@@ -1351,12 +1351,12 @@ public:
     static instantiatedOp* getInstantiatedOp(const int & i) {
         return instantiatedOps[i];
     };
-    static int getInstantiatedOpCount() {
-        return instantiatedOps.size();
-    }
     static void addInstantiatedOp(instantiatedOp * op) {
         instantiatedOps.push_back(op);
     };
+    static int getInstantiatedOpCount() {
+        return instantiatedOps.size();
+    }
     static vector<pair<bool, bool> > getStaticLiterals() {
         return staticLiterals;
     };
@@ -1371,10 +1371,6 @@ public:
     };
     static vector<FakeTILAction*> & getTILVec() {
         return timedInitialLiteralsVector;
-    };
-
-    static map<int, map<Literal*, pointless_effect, LiteralLT> > & getPointlessTILVec() {
-        return pointlessTILEffects;
     };
 
     static void getEffects(instantiatedOp* op, const bool & start, list<Literal*> & add, list<Literal*> & del, list<NumericEffect> & numeric);

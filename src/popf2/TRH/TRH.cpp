@@ -96,7 +96,6 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	} else if (Planner::FF::helpfulActions) {
 		helpfulActions.insert(helpfulActions.end(), reader.getHelpfulActions().begin(), 
 			reader.getHelpfulActions().end());
-		cout << "helpfulActions: " << helpfulActions.size() << endl;
 	}
 	return std::make_pair (hVal.first, reader.getRelaxedPLanLength());
 }
