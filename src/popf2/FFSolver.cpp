@@ -22,6 +22,7 @@
 
 #include <sys/times.h>
 #include <unistd.h>
+#include <iomanip>
 
 namespace Planner
 {
@@ -5119,6 +5120,10 @@ Solution FF::search(bool & reachedGoal)
     //Record details of initial state
     FF::initialState_HeuristicStateEvals = FF::STATES_EVALUATED_IN_HEURISTIC;
     FF::initialState_HeuristicCompTime = TRH::TRH::TIME_SPENT_IN_HEURISTIC;
+    if (Globals::globalVerbosity & 1) {
+        cout << "#; Initial State - time spent in heuristic: " << std::setprecision(9) << FF::initialState_HeuristicCompTime << "s." << endl;
+        cout << "#; Initial State - heuristic states evaluated: " << FF::initialState_HeuristicStateEvals << endl;
+    }
 
     auto_ptr<StatesToDelete> statesKept(new StatesToDelete());
 

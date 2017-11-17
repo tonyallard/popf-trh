@@ -456,8 +456,6 @@ int main(int argc, char * argv[])
                 cout << "#; Time spent converting PDDL state: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_CONVERTING_PDDL_STATE << "s." << endl;
                 cout << "#; Time spent printing state to file: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_PRINTING_TO_FILE << "s." << endl;
                 cout << "#; Time spent in heuristic: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_HEURISTIC << "s." << endl;
-                cout << "#; Initial State - time spent in heuristic: " << std::setprecision(9) << FF::initialState_HeuristicCompTime << "s." << endl;
-                cout << "#; Initial State - heuristic states evaluated: " << FF::initialState_HeuristicStateEvals << endl;
                 cout << "#; Cost: " << planAndConstraints.quality << endl;
                 cout << "#; EHC Performance Histogram: " << FF::EHC_PERFORMANCE_HISTOGRAM.size() << endl;
                 map<int, int>::iterator ehcPerfItr = FF::EHC_PERFORMANCE_HISTOGRAM.begin();
@@ -485,8 +483,6 @@ int main(int argc, char * argv[])
         cout << "#; Time spent converting PDDL state: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_CONVERTING_PDDL_STATE << "s." << endl;
         cout << "#; Time spent printing state to file: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_PRINTING_TO_FILE << "s." << endl;
         cout << "#; Time spent in heuristic: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_HEURISTIC << "s." << endl;
-        cout << "#; Initial State - time spent in heuristic: " << std::setprecision(9) << FF::initialState_HeuristicCompTime << "s." << endl;
-        cout << "#; Initial State - heuristic states evaluated: " << FF::initialState_HeuristicStateEvals << endl;
         cout << "#; EHC Performance Histogram: " << FF::EHC_PERFORMANCE_HISTOGRAM.size() << endl;
         map<int, int>::iterator ehcPerfItr = FF::EHC_PERFORMANCE_HISTOGRAM.begin();
         for (; ehcPerfItr != FF::EHC_PERFORMANCE_HISTOGRAM.end(); ehcPerfItr++) {
