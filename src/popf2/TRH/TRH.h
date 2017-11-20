@@ -77,6 +77,9 @@ public:
 	static double TIME_SPENT_IN_HEURISTIC;
 	static double TIME_SPENT_IN_PRINTING_TO_FILE;
 	static double TIME_SPENT_CONVERTING_PDDL_STATE;
+    static int STATES_EVALUATED_IN_HEURISTIC;
+    static int initialState_HeuristicStateEvals;
+    static double initialState_HeuristicCompTime;
 	
 	pair<double, int> getHeuristic(Planner::ExtendedMinimalState & theState,
 		std::list<Planner::FFEvent>& plan, std::list<Planner::FFEvent> & now,

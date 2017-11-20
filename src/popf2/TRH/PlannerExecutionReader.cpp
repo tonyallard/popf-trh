@@ -4,6 +4,8 @@
 
 #include "../pddl/PDDLUtils.h"
 
+#include "../RPGBuilder.h"
+
 namespace TRH {
 
 const string PlannerExecutionReader::RELAXED_PLAN_SIZE_DELIM = "Relaxed plan length is: ";
@@ -14,7 +16,8 @@ const string PlannerExecutionReader::H_PLAN_DELIM_START = "=====Plan Start====="
 const string PlannerExecutionReader::H_PLAN_DELIM_STOP = "=====Plan Stop=====";
 
 PlannerExecutionReader::PlannerExecutionReader(string plannerOutput, 
-	const std::list<PDDL::TIL> & tils) {
+	const std::list<PDDL::TIL> & tils,
+	const Planner::MinimalState & state, double timeStamp) {
 
 	statesEvaluatedInHeuristic = getHeuristicStatesEvaluated(plannerOutput);
 	relaxedPlanSize = getRelaxedPLanLength(plannerOutput);
@@ -22,7 +25,7 @@ PlannerExecutionReader::PlannerExecutionReader(string plannerOutput,
 	if (relaxedPlanSize > 0) {
 		list<string> relaxedPlanStr = getRelaxedPlanStr(plannerOutput);
 		relaxedPlan = getRelaxedPlan(relaxedPlanStr, tils);
-		helpfulActions = getHelpfulActions(relaxedPlan);
+		helpfulActions = getHelpfulActions(relaxedPlan, state, timeStamp);
 	}
 }
 
@@ -78,7 +81,8 @@ list<string> PlannerExecutionReader::getRelaxedPlanStr(const string & output) {
 	return relaxedPlanStr;
 }
 
-list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(const list<Planner::FFEvent> & plan) {
+list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(const list<Planner::FFEvent> & plan,
+	const Planner::MinimalState & state, double timeStamp) {
 	list<Planner::ActionSegment> helpfulActions;
 	// cout << "Helpful Actions" << endl;
 	list<Planner::FFEvent>::const_iterator planItr = plan.begin();
@@ -88,7 +92,10 @@ list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(const lis
 			(planItr->time_spec == VAL::time_spec::E_AT_START))  {
 			Planner::ActionSegment act(planItr->action, planItr->time_spec, 
 				planItr->divisionID, Planner::RPGHeuristic::emptyIntList);
-			helpfulActions.push_back(act);
+			if (Planner::RPGBuilder::getHeuristic()->testApplicability(state, timeStamp, act, false, false)) {
+				helpfulActions.push_back(act);
+			}
+			return helpfulActions;
 		}
 	}
 	return helpfulActions;
