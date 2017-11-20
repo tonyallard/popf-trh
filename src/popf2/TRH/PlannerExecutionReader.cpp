@@ -95,7 +95,6 @@ list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(const lis
 			if (Planner::RPGBuilder::getHeuristic()->testApplicability(state, timeStamp, act, false, false)) {
 				helpfulActions.push_back(act);
 			}
-			return helpfulActions;
 		}
 	}
 	return helpfulActions;

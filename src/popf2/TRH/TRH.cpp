@@ -76,7 +76,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	string result = runPlanner();
 	
 	//Read in the results of the relaxed plan
-	PlannerExecutionReader reader(result, tempProb.first.getTILs(), state, timestamp);
+	PlannerExecutionReader reader(result, tempProb.first.getTILs(), state, theState.timeStamp);
 	TRH::STATES_EVALUATED_IN_HEURISTIC += reader.getHeuristicStatesEvaluated();
 
 	if ((Planner::Globals::globalVerbosity & 1) && (initialState_HeuristicStateEvals < 0)) {
