@@ -24,7 +24,7 @@ PlanExecutor * PlanExecutor::getInstance() {
 
 void PlanExecutor::updateEventTimings(const std::set<Planner::FFEvent *> & plan,
 	stn::ColinSTNImpl & stn) {
-	createMinimalSTN(stn, plan);
+	// createMinimalSTN(stn, plan);
 
 	// Time Dispatching Algorithm
 	std::set<Planner::FFEvent *> remainingActions(plan.begin(), plan.end());
@@ -188,7 +188,7 @@ set<const Util::triple<const Planner::FFEvent *,
 	edgeItr = outEdges.begin();
 
 	for (; edgeItr != outEdges.end(); edgeItr++) {
-		if ((*edgeItr)->second < 0) {
+		if ((*edgeItr)->second <= 0) {
 			precedenceConstraints.insert(*edgeItr);
 		}
 	}

@@ -44,8 +44,12 @@ bool isOperator(const Planner::RPGBuilder::Operand & operand);
 bool isOperand(const Planner::RPGBuilder::Operand & operand);
 std::string getExpressionString(const VAL::expression * exp);
 std::string getTimeSpecString(VAL::time_spec time_spec);
-std::string getGoalString(const VAL::goal * goal);
+std::string getGoalString(const VAL::goal * goal, int indentLevel=0);
 std::string getEffectsString(const VAL::effect_lists * effects);
+list<PDDL::Literal> getConditionLiterals(const VAL::goal * goal, 
+	VAL::FastEnvironment * env, VAL::time_spec time_spec);
+list<PDDL::Literal> getEffectLiterals(const VAL::effect_lists * effects, 
+	VAL::FastEnvironment * env, VAL::time_spec time_spec);
 
 //Literal, PNE and TIL Helper Functions
 std::set<PDDLObject> & extractParameters(Inst::Literal * literal,

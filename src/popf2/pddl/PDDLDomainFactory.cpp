@@ -309,7 +309,7 @@ string PDDLDomainFactory::getDurativeAction(
 	output << "\t\t:duration " << getExpressionString(durationalGoal) << endl;
 	//get conditions
 	output << "\t\t:condition" << endl
-			<< getConditions(action->precondition, true) << endl;
+			<< getGoalString(action->precondition, 3) << endl;
 	//get effects
 	output << "\t\t:effect" << endl << getEffectsString(action->effects)
 			<< endl;
@@ -326,29 +326,11 @@ string PDDLDomainFactory::getAction(const VAL::action * action) {
 			<< ")" << endl;
 	//get preconditions
 	output << "\t\t:precondition" << endl
-			<< getConditions(action->precondition, false) << endl;
+			<< getGoalString(action->precondition, 3) << endl;
 	//get effects
 	output << "\t\t:effect" << endl << getEffectsString(action->effects)
 			<< endl;
 	output << "\t)";
-	return output.str();
-}
-
-std::string PDDLDomainFactory::getConditions(const VAL::goal * goal,
-		bool isForDurativeAction) {
-	std::ostringstream output;
-	const VAL::conj_goal * conjGoal = dynamic_cast<const VAL::conj_goal *>(goal);
-	if (conjGoal) {
-		output << "\t\t\t(and " << endl;
-		VAL::goal_list::const_iterator goalItr = conjGoal->getGoals()->begin();
-		for (; goalItr != conjGoal->getGoals()->end(); goalItr++) {
-			const VAL::goal * aGoal = *goalItr;
-			output << "\t\t\t\t" << getGoalString(aGoal) << endl;
-		}
-		output << "\t\t\t)" << endl;
-	} else {
-		output << getGoalString(goal);
-	}
 	return output.str();
 }
 

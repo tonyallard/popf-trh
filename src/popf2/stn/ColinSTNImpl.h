@@ -37,7 +37,8 @@ public:
 	std::string getD3Output() const;
 	
 	static ColinSTNImpl makeColinSTN(const std::list<Planner::FFEvent> & plan,
-			std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > ordering);
+			std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > ordering,
+			const Planner::FFEvent * initialEvent);
 
 	friend std::ostream & operator<<(std::ostream & output, const ColinSTNImpl & colinSTN);
 

@@ -30,6 +30,14 @@ PDDL::Literal LiteralFactory::getLiteral(const VAL::simple_goal * goal){
 	return Literal(prop, positive);
 }
 
+PDDL::Literal LiteralFactory::getLiteral(const VAL::simple_goal * goal, 
+	VAL::FastEnvironment * env, bool showType){
+	PDDL::Proposition prop = PropositionFactory::getInstance()->
+		getGroundedProposition(goal->getProp(), env, showType);
+	bool positive = goal->getPolarity() != VAL::polarity::E_NEG;
+	return Literal(prop, positive);
+}
+
 list<PDDL::Literal> LiteralFactory::getLiterals(list<Inst::Literal*> * propositions,
 		bool positive) {
 	list<PDDL::Literal> literals;

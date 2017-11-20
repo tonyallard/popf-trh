@@ -276,7 +276,7 @@ std::string getTimeSpecString(VAL::time_spec time_spec) {
 	return "???";
 }
 
-std::string getGoalString(const VAL::goal * goal) {
+std::string getGoalString(const VAL::goal * goal, int indentLevel) {
 	std::ostringstream output;
 	const VAL::conj_goal * conjGoal = dynamic_cast<const VAL::conj_goal *>(goal);
 	const VAL::timed_goal * timedGoal =
@@ -287,28 +287,97 @@ std::string getGoalString(const VAL::goal * goal) {
 			dynamic_cast<const VAL::comparison *>(goal);
 	const VAL::neg_goal * negGoal = dynamic_cast<const VAL::neg_goal *>(goal);
 	if (conjGoal) {
-		output << "\t\t\t(and " << endl;
+		output << std::string(indentLevel, '\t') << "(and " << endl;
 		VAL::goal_list::const_iterator goalItr = conjGoal->getGoals()->begin();
 		for (; goalItr != conjGoal->getGoals()->end(); goalItr++) {
 			const VAL::goal * aGoal = *goalItr;
-			output << "\t\t\t\t" << getGoalString(aGoal) << endl;
+			output << getGoalString(aGoal, indentLevel+1) << endl;
 		}
-		output << "\t\t\t)" << endl;
+		output << std::string(indentLevel, '\t') << ")" << endl;
 	} else if (timedGoal) {
-		output << "(" << getTimeSpecString(timedGoal->getTime()) << " "
+		output << std::string(indentLevel, '\t') 
+				<< "(" << getTimeSpecString(timedGoal->getTime()) << " "
 				<< getGoalString(timedGoal->getGoal()) << ")";
 	} else if (simpleGoal) {
 		PDDL::Literal lit = LiteralFactory::getInstance()->getLiteral(simpleGoal);
-		output << lit;
+		output  << std::string(indentLevel, '\t') 
+			<< lit;
 	} else if (compGoal) {
-		output << getExpressionString(compGoal);
+		output  << std::string(indentLevel, '\t') 
+			<< getExpressionString(compGoal);
 	} else if (negGoal) {
-		output << "(not " << getGoalString(negGoal->getGoal()) << ")";
+		output  << std::string(indentLevel, '\t') 
+			<< "(not " << getGoalString(negGoal->getGoal()) << ")";
 	} else {
 		cerr << "Something went wrong printing goals. Unhandled Goal." << endl;
 		goal->display(0);
 	}
 	return output.str();
+}
+
+list<PDDL::Literal> getConditionLiterals(const VAL::goal * goal, 
+	VAL::FastEnvironment * env, VAL::time_spec time_spec) {
+
+	list<PDDL::Literal> literals;
+	
+	const VAL::conj_goal * conjGoal = 
+			dynamic_cast<const VAL::conj_goal *>(goal);
+	const VAL::timed_goal * timedGoal =
+			dynamic_cast<const VAL::timed_goal *>(goal);
+	const VAL::simple_goal * simpleGoal =
+			dynamic_cast<const VAL::simple_goal *>(goal);
+	if (conjGoal) {
+		VAL::goal_list::const_iterator goalItr = conjGoal->getGoals()->begin();
+		for (; goalItr != conjGoal->getGoals()->end(); goalItr++) {
+			const VAL::goal * aGoal = *goalItr;
+			list<PDDL::Literal> tmpLits = getConditionLiterals(aGoal, env, time_spec);
+			literals.insert(literals.end(), tmpLits.begin(), tmpLits.end());
+		}
+	} else if (timedGoal) {
+		if ((time_spec == timedGoal->getTime()) || 
+			(timedGoal->getTime() == VAL::time_spec::E_OVER_ALL)) {
+			literals = getConditionLiterals(timedGoal->getGoal(), env, time_spec);
+		}
+	} else if (simpleGoal) {
+		PDDL::Literal lit = LiteralFactory::getInstance()->getLiteral(simpleGoal, env, false);
+		literals.push_back(lit);
+	}
+	return literals;
+}
+
+list<PDDL::Proposition> getEffectPropositions(const VAL::effect_lists * effects, 
+	VAL::FastEnvironment * env, VAL::time_spec time_spec, bool positive) {
+
+	list<PDDL::Proposition> propositions;
+	VAL::pc_list<VAL::timed_effect*>::const_iterator teItr = effects->timed_effects.begin();
+	const VAL::pc_list<VAL::timed_effect*>::const_iterator teItrEnd = effects->timed_effects.end();
+	for (; teItr != teItrEnd; teItr++) {
+		if ((*teItr)->ts == time_spec) {
+			list<PDDL::Proposition> tmpProps = getEffectPropositions((*teItr)->effs, 
+				env, time_spec, positive);
+			propositions.insert(propositions.end(), tmpProps.begin(), tmpProps.end());
+
+		}
+	}
+
+	if (positive) {
+		VAL::pc_list<VAL::simple_effect*>::const_iterator addItr = effects->add_effects.begin();
+		const VAL::pc_list<VAL::simple_effect*>::const_iterator addItrEnd = effects->add_effects.end();
+		for (; addItr != addItrEnd; addItr++) {
+			PDDL::Proposition prop = PropositionFactory::getInstance()->
+				getGroundedProposition((*addItr)->prop, env, false);
+			propositions.push_back(prop);
+		}
+	} else {
+		VAL::pc_list<VAL::simple_effect*>::const_iterator delItr = effects->del_effects.begin();
+		const VAL::pc_list<VAL::simple_effect*>::const_iterator delItrEnd = effects->del_effects.end();
+		for (; delItr != delItrEnd; delItr++) {
+			PDDL::Proposition prop = PropositionFactory::getInstance()->
+				getGroundedProposition((*delItr)->prop, env, false);
+			propositions.push_back(prop);
+		}
+	}
+	return propositions;
 }
 
 std::string getEffectsString(const VAL::effect_lists * effects) {
@@ -466,37 +535,18 @@ std::map<PDDLObject, std::string> generateParameterTable(
  */
 std::list<PDDL::Proposition> getActionEffects(const Planner::FFEvent * action, 
 	bool positive) {
-	
 	std::list<Inst::Literal*> effects;
-
-	//Depending on time spec (start or end) add required effects
-	if (action->time_spec == VAL::time_spec::E_AT_START) {
-		int id = action->action->getID();
-		if (positive) {
-			effects = Planner::RPGBuilder::getStartPropositionAdds()[id];
-		} else {
-			effects =
-					Planner::RPGBuilder::getStartPropositionDeletes()[id];
-		}
-	} else if (action->time_spec == VAL::time_spec::E_AT_END) {
-		int id = action->action->getID();
-		if (positive) {
-			effects = Planner::RPGBuilder::getEndPropositionAdds()[id];
-		} else {
-			effects = Planner::RPGBuilder::getEndPropositionDeletes()[id];
-		}
-	} else if (action->time_spec == VAL::time_spec::E_AT) {
+	if (action->time_spec == VAL::time_spec::E_AT) {
 		int tilID = action->divisionID;
 		if (positive) {
 			effects = Planner::RPGBuilder::getAllTimedInitialLiterals()[tilID]->addEffects;
 		} else {
 			effects = Planner::RPGBuilder::getAllTimedInitialLiterals()[tilID]->delEffects;
 		}
-	} else {
-		std::cerr << "This case not catered for.";
-		assert(false);
+		return PropositionFactory::getInstance()->getPropositions(effects);
 	}
-	return PropositionFactory::getInstance()->getPropositions(effects);
+	return getEffectPropositions(action->action->forOp()->effects, 
+		action->action->getEnv(), action->time_spec, positive);
 }
 
 std::list<PDDL::Literal> getActionConditions(const Planner::FFEvent * action) {
@@ -505,58 +555,8 @@ std::list<PDDL::Literal> getActionConditions(const Planner::FFEvent * action) {
 		//TILs have no conditions
 		return std::list<PDDL::Literal>();
 	}
-
-	int actionID = action->action->getID();
-	std::list<Inst::Literal*> positiveConditions;
-	std::list<Inst::Literal*> negativeConditions;
-	//Add invariant (over all) conditions regardless
-	//Positive First
-	std::list<Inst::Literal*> tmpConditions =
-			Planner::RPGBuilder::getInvariantPropositionalPreconditions()[actionID];
-	positiveConditions.insert(positiveConditions.end(), tmpConditions.begin(),
-			tmpConditions.end());
-	//Then Negative
-	tmpConditions =
-			Planner::RPGBuilder::getInvariantNegativePropositionalPreconditions()[actionID];
-	negativeConditions.insert(negativeConditions.end(), tmpConditions.begin(),
-			tmpConditions.end());
-
-	//Depending on time spec (start or end) add required conditions
-
-	if (action->time_spec == VAL::time_spec::E_AT_START) {
-		//Positive First
-		tmpConditions =
-				Planner::RPGBuilder::getStartPropositionalPreconditions()[actionID];
-		positiveConditions.insert(positiveConditions.end(),
-				tmpConditions.begin(), tmpConditions.end());
-		//Then Negative
-		tmpConditions =
-				Planner::RPGBuilder::getStartNegativePropositionalPreconditions()[actionID];
-		negativeConditions.insert(negativeConditions.end(),
-				tmpConditions.begin(), tmpConditions.end());
-	} else if (action->time_spec == VAL::time_spec::E_AT_END) {
-		//Positive First
-		tmpConditions =
-				Planner::RPGBuilder::getEndPropositionalPreconditions()[actionID];
-		positiveConditions.insert(positiveConditions.end(),
-				tmpConditions.begin(), tmpConditions.end());
-		//Then Negative
-		tmpConditions =
-				Planner::RPGBuilder::getEndNegativePropositionalPreconditions()[actionID];
-		negativeConditions.insert(negativeConditions.end(),
-				tmpConditions.begin(), tmpConditions.end());
-	} else {
-		std::cerr << "This case not catered for.";
-		assert(false);
-	}
-
-	std::list<PDDL::Literal> literals;
-	std::list<PDDL::Literal> tmpLiterals = LiteralFactory::getInstance()->getLiterals(
-			&positiveConditions, true);
-	literals.insert(literals.end(), tmpLiterals.begin(), tmpLiterals.end());
-	tmpLiterals = LiteralFactory::getInstance()->getLiterals(&negativeConditions, false);
-	literals.insert(literals.end(), tmpLiterals.begin(), tmpLiterals.end());
-	return literals;
+	return getConditionLiterals(action->action->forOp()->precondition, 
+		action->action->getEnv(), action->time_spec);
 }
 
 std::string getActionName(const Planner::FFEvent * action) {
@@ -568,7 +568,7 @@ std::string getActionName(const Planner::FFEvent * action) {
 		Planner::RPGBuilder::FakeTILAction * til =
 					Planner::RPGBuilder::getAllTimedInitialLiterals()[action->divisionID];
 		output << "at-" 
-			<< PDDL::TILFactory::getInstance()->getTIL(*til, til->duration).getName();
+			<< PDDL::TILFactory::getInstance()->getTIL(*til, action->divisionID).getName();
 	} else {
 		std::cerr << "This case not catered for.";
 		assert(false);		

@@ -44,7 +44,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 			deordAlg->getOrderingConstratints(plan, initialEvent);
 	// Generate STN
 	stn::ColinSTNImpl stn = stn::ColinSTNImpl::makeColinSTN(plan, 
-		orderingConstraints);
+		orderingConstraints, initialEvent);
 	
 	// Check consistency --> should be 'yes' or we have a problem
 	bool consistent = stn.isConsistent();
@@ -66,8 +66,6 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 	// cout << "Is STN still consistent? " << (consistent > 0 ? "yes" : "no")
 	// 		<< std::endl;
 	if (consistent) {
-		// cout << "This is a plan to the original problem. Dispatching an executable plan."
-			// << endl;
 		//The relaxed plan is a solution to the original problem
 		executePlan(plan, stn, initialEvent);
 		return pair<double, list<Planner::FFEvent> >(0.0, plan);

@@ -24,6 +24,8 @@ public:
 	static LiteralFactory * getInstance();
 
 	PDDL::Literal getLiteral(const VAL::simple_goal * goal);
+	PDDL::Literal getLiteral(const VAL::simple_goal * goal, 
+	VAL::FastEnvironment * env, bool showType);
 	PDDL::Literal getLiteral(const Inst::Literal * aLiteral, bool positive);
 	std::list<PDDL::Literal> getLiterals(std::list<Inst::Literal*> * literals,
 		bool positive);

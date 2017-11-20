@@ -182,7 +182,8 @@ std::vector<const Planner::FFEvent *> ColinSTNImpl::getSuccessors(
 }
 
 ColinSTNImpl ColinSTNImpl::makeColinSTN(const std::list<Planner::FFEvent> & events,
-			std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > orderingConstraints) {
+			std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > orderingConstraints,
+			const Planner::FFEvent * initialEvent) {
 	
 	ColinSTNImpl stn;
 
@@ -225,7 +226,13 @@ ColinSTNImpl ColinSTNImpl::makeColinSTN(const std::list<Planner::FFEvent> & even
 		const Planner::FFEvent * third = causalLink->second;
 		Util::triple<const Planner::FFEvent *, double> minConstraint;
 		Util::triple<const Planner::FFEvent *, double> maxConstraint;
-		minConstraint.make_triple(third, minCausalLink, first);
+		if (first == initialEvent) {
+			//Remember that the initial event
+			//shouldn't affect execution
+			minConstraint.make_triple(third, 0.0, first);
+		} else {
+			minConstraint.make_triple(third, minCausalLink, first);
+		}
 		maxConstraint.make_triple(first, maxCausalLink, third);
 		stn.addEdge(minConstraint);
 		stn.addEdge(maxConstraint);

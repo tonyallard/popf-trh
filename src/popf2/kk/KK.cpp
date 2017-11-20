@@ -27,6 +27,7 @@ std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > KK::get
 	//Build a validation structure for the plan
 	std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > validationStructure =
 			getActionValidationStructure(plan, initialAction);
+	// printValidationStructure(validationStructure);
 
 	std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > actionOrderings;
 	//Construct generalised ordering
@@ -127,7 +128,9 @@ std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > KK::getActionVa
 		//for each precondition find the minimum action that achieves
 		//the precondition without something in the middle that removes it.
 		const Planner::FFEvent * event = &(*eventItr);
+		
 		std::list<PDDL::Literal> conditions = PDDL::getActionConditions(event);
+
 		//Handle special case where conditions are empty
 		if (conditions.empty()) {
 			Util::triple<const Planner::FFEvent *, PDDL::Literal> ordering;
@@ -176,6 +179,7 @@ const Planner::FFEvent * KK::findMinimumSupportingAction(
 	const Planner::FFEvent * currentSupportingEvent = 0;
 	for (; eventItr != plan.rend(); eventItr++) {
 		const Planner::FFEvent * event = &(*eventItr);
+		
 		//Check if the event removes support for the condition
 		std::list<PDDL::Proposition> effects = PDDL::getActionEffects(
 				event, !condition->isPositive());
@@ -183,6 +187,7 @@ const Planner::FFEvent * KK::findMinimumSupportingAction(
 			//If it is return previous suporter
 			return currentSupportingEvent;
 		}
+
 		//get effects
 		effects = PDDL::getActionEffects(event, condition->isPositive());
 		//check if effects support this
@@ -208,9 +213,9 @@ void KK::printValidationStructure(
 
 void KK::printCausalLink(
 		Util::triple<const Planner::FFEvent *, PDDL::Literal> & causalLink) {
-	cout << PDDL::getActionName(causalLink.first)
+	cout << PDDL::getActionName(causalLink.first) << "-" << causalLink.first->time_spec
 			<< " supports " << causalLink.second << " for "
-			<< PDDL::getActionName(causalLink.third)
+			<< PDDL::getActionName(causalLink.third) << "-" << causalLink.third->time_spec
 			<< std::endl;
 }
 

@@ -77,7 +77,7 @@ map<int, double> TemporalConflictRelaxation::solve() {
 		= constraintRows.begin();
 	for (; rowItr != constraintRows.end(); rowItr++) {
 		vector<pair<int,double> > constraintRow = *rowItr;
-		model->addRow(constraintRow, 0.0, INF_UPPER_BOUND);
+		model->addRow(constraintRow, 10.0, INF_UPPER_BOUND);
 	}
 	
 	//Minimise the objective function
