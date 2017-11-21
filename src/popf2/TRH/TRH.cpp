@@ -87,6 +87,8 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
         	<< TRH::initialState_HeuristicCompTime << "s." << endl;
         cout << "#; Initial State - heuristic states evaluated: " 
         	<< TRH::initialState_HeuristicStateEvals << endl;
+        cout << "#; Initial State - dead ends encountered: " 
+        	<< reader.getDeadEndsEncountered() << endl;
         cout << std::setprecision(3);
     }
 

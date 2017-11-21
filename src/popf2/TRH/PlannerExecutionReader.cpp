@@ -10,6 +10,7 @@ namespace TRH {
 
 const string PlannerExecutionReader::RELAXED_PLAN_SIZE_DELIM = "Relaxed plan length is: ";
 const string PlannerExecutionReader::H_STATES_EVAL_DELIM = "; States evaluated: ";
+const string PlannerExecutionReader::H_DEAD_ENDS_DELIM = "#; Dead Ends encountered: ";
 const string PlannerExecutionReader::SOLUTION_FOUND = ";;;; Solution Found";
 
 const string PlannerExecutionReader::H_PLAN_DELIM_START = "=====Plan Start====="; 
@@ -20,6 +21,7 @@ PlannerExecutionReader::PlannerExecutionReader(string plannerOutput,
 	const Planner::MinimalState & state, double timeStamp) {
 
 	statesEvaluatedInHeuristic = getHeuristicStatesEvaluated(plannerOutput);
+	deadEndsEncounteredInHeuristic = getDeadEndsEncountered(plannerOutput);
 	relaxedPlanSize = getRelaxedPLanLength(plannerOutput);
 	solutionFound = getIsSolutionFound(plannerOutput);
 	if (relaxedPlanSize > 0) {
@@ -43,6 +45,17 @@ int PlannerExecutionReader::getHeuristicStatesEvaluated(const string & plannerOu
 		string statesEvalStr = plannerOutput.substr(pos + H_STATES_EVAL_DELIM.size(), posEnd-(pos + H_STATES_EVAL_DELIM.size()));
 		int statesEval = stoi(statesEvalStr);
 		return statesEval;
+	}
+	return -1;
+}
+
+int PlannerExecutionReader::getDeadEndsEncountered(const string & plannerOutput) {
+	int pos = plannerOutput.find(H_DEAD_ENDS_DELIM);
+	if (pos != -1) {
+		int posEnd = plannerOutput.find("\n", pos);
+		string deadEndsStr = plannerOutput.substr(pos + H_DEAD_ENDS_DELIM.size(), posEnd-(pos + H_DEAD_ENDS_DELIM.size()));
+		int deadEnds = stoi(deadEndsStr);
+		return deadEnds;
 	}
 	return -1;
 }

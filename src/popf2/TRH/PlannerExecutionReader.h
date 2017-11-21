@@ -26,6 +26,7 @@ private:
 	static const string H_VAL_DELIM;
 	static const string RELAXED_PLAN_SIZE_DELIM;
 	static const string H_STATES_EVAL_DELIM;
+	static const string H_DEAD_ENDS_DELIM;
 	static const string H_PLAN_DELIM;
 	static const string SOLUTION_FOUND;
 
@@ -33,12 +34,14 @@ private:
 	static const string H_PLAN_DELIM_STOP;
 
 	int statesEvaluatedInHeuristic;
+	int deadEndsEncounteredInHeuristic;
 	int relaxedPlanSize;
 	list<Planner::FFEvent> relaxedPlan;
 	list<Planner::ActionSegment> helpfulActions;
 	bool solutionFound;
 
 	int getHeuristicStatesEvaluated(const string & plannerOutput);
+	int getDeadEndsEncountered(const string & plannerOutput);
 	int getRelaxedPLanLength(const string & plannerOutput);
 	list<string> getRelaxedPlanStr(const string & output);
 	list<Planner::ActionSegment> getHelpfulActions(const list<Planner::FFEvent> & plan,
@@ -53,6 +56,10 @@ public:
 
 	inline int getHeuristicStatesEvaluated() {
 		return statesEvaluatedInHeuristic;
+	}
+
+	inline int getDeadEndsEncountered() {
+		return deadEndsEncounteredInHeuristic;
 	}
 
 	inline int getRelaxedPLanLength() {
