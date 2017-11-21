@@ -70,7 +70,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	const Planner::MinimalState & state = theState.getInnerState();
 
 	pair<PDDL::PDDLDomain, PDDL::PDDLState> tempProb = 
-		writeStateToFile(state, header, timestamp, heuristic, pddlFactory, stateFileName);
+		writeStateToFile(state, header, theState.timeStamp, heuristic, pddlFactory, stateFileName);
 
 	Planner::FF::STATES_EVALUATED++;
 	string result = runPlanner();
