@@ -77,7 +77,7 @@ map<int, double> TemporalConflictRelaxation::solve() {
 		= constraintRows.begin();
 	for (; rowItr != constraintRows.end(); rowItr++) {
 		vector<pair<int,double> > constraintRow = *rowItr;
-		model->addRow(constraintRow, 10.0, INF_UPPER_BOUND);
+		model->addRow(constraintRow, EPSILON, INF_UPPER_BOUND);
 	}
 	
 	//Minimise the objective function
@@ -129,7 +129,7 @@ void TemporalConflictRelaxation::addDecisionVarsToObjectiveFunction(
 
 		if (relaxableConstraints.find(conflict) != relaxableConstraints.end()) {
 			//This is relaxable create the appropriate bounds
-			decisionVar.make_triple(decisionVarCoeff, conflict->second, INF_UPPER_BOUND);
+			decisionVar.make_triple(decisionVarCoeff, EPSILON, INF_UPPER_BOUND);
 		
 		} else {
 			//The bounds should ensure this value does not change
