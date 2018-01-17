@@ -4872,7 +4872,7 @@ bool LPScheduler::scheduleToMetric()
     vector<int> columnForTerm(termCount);
     
     if (termCount == 1 && metric->variables.front() < 0) {
-        cout << "; Warning: metric is just to optimise makespan, so post-hoc optimisation is redundant unless being used as a partial-order lifter\n";
+        // cout << "; Warning: metric is just to optimise makespan, so post-hoc optimisation is redundant unless being used as a partial-order lifter\n";
     }
     
     list<double>::const_iterator wItr = metric->weights.begin();
