@@ -115,7 +115,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 		helpfulActions.insert(helpfulActions.end(), reader.getHelpfulActions().begin(), 
 			reader.getHelpfulActions().end());
 	}
-	return std::make_pair (hVal.first, reader.getRelaxedPLanLength());
+	return std::make_pair (hVal.first, reader.getRelaxedPlan().size());
 }
 
 void TRH::addRelaxedPlan(list<Planner::FFEvent> & proposedPlan, list<Planner::FFEvent> & relaxedPlan) {
