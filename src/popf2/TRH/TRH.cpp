@@ -27,6 +27,7 @@ namespace TRH {
 
 TRH * TRH::INSTANCE = NULL;
 
+// const char * TRH::H_CMD = "./lib/colin-clp";
 const char * TRH::H_CMD = "./lib/popf3-clp";
 const string TRH::TEMP_FILE_PATH = "/mnt/ramdisk/";//"/tmp/";
 const string TRH::TEMP_FILE_PREFIX = "temp";
