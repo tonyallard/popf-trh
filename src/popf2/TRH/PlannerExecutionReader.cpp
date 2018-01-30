@@ -18,7 +18,8 @@ const string PlannerExecutionReader::H_PLAN_DELIM_STOP = "=====Plan Stop=====";
 
 PlannerExecutionReader::PlannerExecutionReader(string plannerOutput, 
 	const std::list<PDDL::TIL> & tils,
-	const Planner::MinimalState & state, double timeStamp) {
+	const Planner::MinimalState & state,
+	double timeStamp) {
 
 	statesEvaluatedInHeuristic = getHeuristicStatesEvaluated(plannerOutput);
 	deadEndsEncounteredInHeuristic = getDeadEndsEncountered(plannerOutput);

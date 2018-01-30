@@ -1466,7 +1466,6 @@ public:
 
     }
 
-
     bool empty() const {
         return (qOne.empty() && qTwo.empty());
     }
@@ -5166,6 +5165,7 @@ Solution FF::search(bool & reachedGoal)
 
 
     while (!searchQueue.empty()) {
+        
         if (Globals::globalVerbosity & 2) cout << "\n--\n";
         auto_ptr<SearchQueueItem> currSQI(searchQueue.pop_front());
         currSQI->printPlan();
@@ -5215,15 +5215,11 @@ Solution FF::search(bool & reachedGoal)
         }
 
         FFheader_upToDate = false;
-
-
         const auto_ptr<ParentData> incrementalData(FF::allowCompressionSafeScheduler ? 0 : LPScheduler::prime(currSQI->plan, currSQI->state()->getInnerState().temporalConstraints,
                 currSQI->state()->startEventQueue));
 
-
-
         for (; helpfulActsItr != helpfulActsEnd; ++helpfulActsItr) {
-
+            
             auto_ptr<SearchQueueItem> succ;
             bool tsSound = false;
             const int oldTIL = currSQI->state()->getInnerState().nextTIL;

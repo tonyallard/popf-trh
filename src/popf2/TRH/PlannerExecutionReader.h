@@ -45,7 +45,7 @@ private:
 	list<string> getRelaxedPlanStr(const string & output);
 	list<Planner::ActionSegment> getHelpfulActions(
 		const list<Planner::FFEvent> & plan,
-		const Planner::MinimalState & state, 
+		const Planner::MinimalState & state,
 		double timeStamp);
 	list<Planner::FFEvent> getRelaxedPlan(list<string> planStr, 
 		const std::list<PDDL::TIL> & tils);
@@ -53,7 +53,7 @@ private:
 public:
 	PlannerExecutionReader(string plannerOutput, 
 		const std::list<PDDL::TIL> & tils,
-		const Planner::MinimalState & state, 
+		const Planner::MinimalState & state,
 		double timeStamp);
 
 	inline int getHeuristicStatesEvaluated() {
