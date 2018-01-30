@@ -44,15 +44,18 @@ private:
 	int getDeadEndsEncountered(const string & plannerOutput);
 	int getRelaxedPLanLength(const string & plannerOutput);
 	list<string> getRelaxedPlanStr(const string & output);
-	list<Planner::ActionSegment> getHelpfulActions(const list<Planner::FFEvent> & plan,
-		const Planner::MinimalState & state, double timeStamp);
+	list<Planner::ActionSegment> getHelpfulActions(
+		const list<Planner::FFEvent> & plan,
+		const Planner::MinimalState & state, 
+		double timeStamp);
 	list<Planner::FFEvent> getRelaxedPlan(list<string> planStr, 
 		const std::list<PDDL::TIL> & tils);
 	bool getIsSolutionFound(const string & plannerOutput);
 public:
 	PlannerExecutionReader(string plannerOutput, 
 		const std::list<PDDL::TIL> & tils,
-		const Planner::MinimalState & state, double timeStamp);
+		const Planner::MinimalState & state, 
+		double timeStamp);
 
 	inline int getHeuristicStatesEvaluated() {
 		return statesEvaluatedInHeuristic;

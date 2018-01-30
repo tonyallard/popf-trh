@@ -94,24 +94,43 @@ list<string> PlannerExecutionReader::getRelaxedPlanStr(const string & output) {
 	return relaxedPlanStr;
 }
 
-list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(const list<Planner::FFEvent> & plan,
-	const Planner::MinimalState & state, double timeStamp) {
+list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(
+	const list<Planner::FFEvent> & plan,
+	const Planner::MinimalState & state,
+	double timeStamp) {
 	list<Planner::ActionSegment> helpfulActions;
 	// cout << "Helpful Actions" << endl;
+	
+	//Add end of currently executing action if applicable
+	std::map<int, std::set<int> >::const_iterator saItr =
+			state.startedActions.begin();
+	const std::map<int, std::set<int> >::const_iterator saItrEnd =
+			state.startedActions.end();
+
+	for (; saItr != saItrEnd; saItr++) {
+		Inst::instantiatedOp* action = Planner::RPGBuilder::getInstantiatedOp(
+			saItr->first);
+		Planner::ActionSegment act(action, 
+			VAL::time_spec::E_AT_END, 
+			state.nextTIL, Planner::RPGHeuristic::emptyIntList);
+		if (Planner::RPGBuilder::getHeuristic()->testApplicability(state, timeStamp, act, false, false)) {
+			helpfulActions.push_back(act);
+		}
+	}
+
+	//Add other actions in the relaxed plan if applicable
 	list<Planner::FFEvent>::const_iterator planItr = plan.begin();
 	for (; planItr != plan.end(); planItr++) {
-		// cout << actionStr << endl;
-		if ((planItr->time_spec == VAL::time_spec::E_AT_START) || 
-			(planItr->time_spec == VAL::time_spec::E_AT_START))  {
-			Planner::ActionSegment act(planItr->action, planItr->time_spec, 
-				planItr->divisionID, Planner::RPGHeuristic::emptyIntList);
-			if (Planner::RPGBuilder::getHeuristic()->testApplicability(state, timeStamp, act, false, false)) {
-				helpfulActions.push_back(act);
-			}
+		// cout << PDDL::getActionName(&(*planItr)) << endl;
+		Planner::ActionSegment act(planItr->action, planItr->time_spec, 
+			state.nextTIL, Planner::RPGHeuristic::emptyIntList);
+		if (Planner::RPGBuilder::getHeuristic()->testApplicability(state, timeStamp, act, false, false)) {
+			helpfulActions.push_back(act);
 		}
 	}
 	return helpfulActions;
 }
+
 
 list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planStr, 
 	const std::list<PDDL::TIL> & tils) {

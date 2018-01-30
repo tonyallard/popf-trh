@@ -80,6 +80,7 @@ std::list<PDDL::Literal> getActionConditions(const Planner::FFEvent * action);
 std::list<PDDL::Proposition> getActionEffects(const Planner::FFEvent * action, 
 		bool positive);
 std::string getActionName(const Planner::FFEvent * action);
+std::string getActionName(const Planner::ActionSegment * action);
 std::string getOperatorName(Inst::instantiatedOp* action);
 bool supported(const PDDL::Proposition * proposition,
 		std::list<PDDL::Proposition> * propositions);

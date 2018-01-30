@@ -576,6 +576,23 @@ std::string getActionName(const Planner::FFEvent * action) {
 	return output.str();
 }
 
+std::string getActionName(const Planner::ActionSegment * action) {
+	std::ostringstream output;
+	if ((action->second == VAL::time_spec::E_AT_START) ||
+		(action->second == VAL::time_spec::E_AT_END)){
+		output << getOperatorName(action->first);		
+	} else if (action->second == VAL::time_spec::E_AT) {
+		Planner::RPGBuilder::FakeTILAction * til =
+					Planner::RPGBuilder::getAllTimedInitialLiterals()[action->divisionID];
+		output << "at-" 
+			<< PDDL::TILFactory::getInstance()->getTIL(*til, action->divisionID).getName();
+	} else {
+		std::cerr << "This case not catered for.";
+		assert(false);		
+	}
+	return output.str();
+}
+
 std::string getOperatorName(Inst::instantiatedOp* action) {
 	ostringstream output;
 	output << action->getHead()->getName();
