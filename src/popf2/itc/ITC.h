@@ -73,6 +73,9 @@ public:
 		stn::ColinSTNImpl * network, const Planner::FFEvent * start);
 	std::set<const Util::triple<const Planner::FFEvent *, double> *> checkTemporalConsistencyFW(
 		stn::ColinSTNImpl * network);
+	std::set<const Util::triple<const Planner::FFEvent *, double> *> checkTemporalConsistencySPFA(
+		stn::ColinSTNImpl * network, const Planner::FFEvent * source);
+
 };
 
 }

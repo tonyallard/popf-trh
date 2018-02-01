@@ -51,9 +51,8 @@ public:
 		const typename std::vector<Util::triple<T1, T2> >::const_iterator edgeItrEnd =
 				edges.end();
 		for (; edgeItr != edgeItrEnd; edgeItr++) {
-			const Util::triple<T1, T2> * sample = &(*edgeItr);
-			if ((vert1 == sample->first) && (vert2 == sample->third)) {
-				return sample;
+			if ((vert1 == edgeItr->first) && (vert2 == edgeItr->third)) {
+				return &(*edgeItr);
 			}
 		}
 		return 0;
@@ -66,9 +65,8 @@ public:
 		const typename std::vector<Util::triple<T1, T2> >::const_iterator edgeItrEnd =
 				edges.end();
 		for (; edgeItr != edgeItrEnd; edgeItr++) {
-			const Util::triple<T1, T2> * sample = &(*edgeItr);
-			if ((sample->first == edge.first)
-					&& (sample->third == edge.third)) {
+			if ((edgeItr->first == edge.first)
+					&& (edgeItr->third == edge.third)) {
 				return true;
 			}
 		}
@@ -97,9 +95,8 @@ public:
 		const typename std::vector<Util::triple<T1, T2> >::const_iterator edgeItrEnd =
 				edges.end();
 		for (; edgeItr != edgeItrEnd; edgeItr++) {
-			Util::triple<T1, T2> * sample = &(*edgeItr);
-			if ((sample->first == vertex1) && (sample->third == vertex2)) {
-				sample->second = weight;
+			if ((edgeItr->first == vertex1) && (edgeItr->third == vertex2)) {
+				edgeItr->second = weight;
 				return true;
 			}
 		}
@@ -139,9 +136,8 @@ public:
 		const typename std::vector<Util::triple<T1, T2> >::const_iterator edgeItrEnd =
 				edges.end();
 		for (; edgeItr != edgeItrEnd; edgeItr++) {
-			const Util::triple<T1, T2> * sample = &(*edgeItr);
-			if (sample->first == node) {
-				outEdges.push_back(sample);
+			if (edgeItr->first == node) {
+				outEdges.push_back(&(*edgeItr));
 			}
 		}
 		return outEdges;
@@ -155,9 +151,8 @@ public:
 		const typename std::vector<Util::triple<T1, T2> >::const_iterator edgeItrEnd =
 				edges.end();
 		for (; edgeItr != edgeItrEnd; edgeItr++) {
-			const Util::triple<T1, T2> * sample = &(*edgeItr);
-			if (sample->third == node) {
-				inEdges.push_back(sample);
+			if (edgeItr->third == node) {
+				inEdges.push_back(&(*edgeItr));
 			}
 		}
 		return inEdges;
@@ -172,10 +167,9 @@ public:
 		const typename std::vector<Util::triple<T1, T2> >::const_iterator edgeItrEnd =
 				edges.end();
 		for (; edgeItr != edgeItrEnd; edgeItr++) {
-			const Util::triple<T1, T2> * sample = &(*edgeItr);
-			if ((nodes.find(sample->first) != nodes.end())
-					&& (nodes.find(sample->third) != nodes.end())) {
-				matchingEdges.insert(sample);
+			if ((nodes.find(edgeItr->first) != nodes.end())
+					&& (nodes.find(edgeItr->third) != nodes.end())) {
+				matchingEdges.insert(&(*edgeItr));
 			}
 		}
 		return matchingEdges;

@@ -5547,6 +5547,9 @@ Solution FF::search(bool & reachedGoal)
         }
     }
 
+    //Turn off HA for BFS
+    FF::helpfulActions = false;
+
     while (!searchQueue.empty()) {
 
         auto_ptr<SearchQueueItem> currSQI(searchQueue.pop_front());

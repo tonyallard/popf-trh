@@ -31,7 +31,7 @@ public:
 	std::vector<std::vector<double> > toMatrix();
 	std::string toMatrixString();
 	std::string getMatixLegendStr();
-	bool isConsistent ();
+	bool isConsistent(const Planner::FFEvent * source);
 	bool FIFOLabelCorrectingAlgorithm();
 	std::vector<const Planner::FFEvent *> getSuccessors(const Planner::FFEvent * node);
 	std::string getD3Output() const;

@@ -47,7 +47,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 		orderingConstraints, initialEvent);
 	
 	// Check consistency --> should be 'yes' or we have a problem
-	bool consistent = stn.isConsistent();
+	bool consistent = stn.isConsistent(initialEvent);
 	
 	// cout << "Is STN consistent? " << (consistent ? "yes" : "no") << std::endl;
 	if (!consistent) {
@@ -60,9 +60,9 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 	// cout << "There are " << tilEvents.size() << " TIL actions." << std::endl;
 	reAddTemporalConstraintsToTIL(stn, plan, initialEvent);
 	// cout << stn << endl;
-
+ 
 	// Re-check consistency --> if yes then heuristic is 0
-	consistent = stn.isConsistent();
+	consistent = stn.isConsistent(initialEvent);
 	// cout << "Is STN still consistent? " << (consistent > 0 ? "yes" : "no")
 	// 		<< std::endl;
 	if (consistent) {
@@ -85,14 +85,14 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 		//negative cycle
 		ITC::ITC * itc = ITC::ITC::getInstance();
 		std::set<const Util::triple<const Planner::FFEvent *, double> *> conflictedConstraints =
-			// itc->checkTemporalConsistencyBF(&stn, initialEvent);
-			itc->checkTemporalConsistencyFW(&stn);
+			itc->checkTemporalConsistencySPFA(&stn, initialEvent);
+			// itc->checkTemporalConsistencyFW(&stn);
 
 		// cout << "Found " << conflictedConstraints.size()
 		// 	<< " conflicted constraints" << std::endl;
 
 		if (!conflictedConstraints.size()) {
-			// cerr << "Error: No conflicted constraints found" << endl;
+			cerr << "Error: No conflicted constraints found" << endl;
 			assert(false);
 		}
 
@@ -119,12 +119,12 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 			stn.updateEdgeWeight(relaxation.first->first, relaxation.first->third,
 					relaxation.second);
 		}
-		consistent = stn.isConsistent();
+		consistent = stn.isConsistent(initialEvent);
 		// cout << "Is STN consistent yet? " << (consistent ? "yes" : "no")
 		// 	<< std::endl;
 	}
 	//If we get here the STN should be consistent
-	consistent = stn.isConsistent();
+	consistent = stn.isConsistent(initialEvent);
 	if (!consistent) {
 		cerr << "Error: The STN is still not consistent!" << endl;
 		assert(false);
@@ -232,10 +232,10 @@ std::string HRelax::getConstraintString(
 	const Util::triple<const Planner::FFEvent *, double> * constraint) {
 	ostringstream output;
 	output << PDDL::getActionName(constraint->first) << "-"
-			<< constraint->first->time_spec << "--["
+			<< constraint->first->time_spec << "-" << constraint->first << "--["
 			<< constraint->second << "]--"
 			<< PDDL::getActionName(constraint->third)
-			<< "-" << constraint->third->time_spec;
+			<< "-" << constraint->third->time_spec << "-" << constraint->third;
 	return output.str();
 }
 

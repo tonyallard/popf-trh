@@ -4,6 +4,7 @@
  *  Created on: 13 Sep 2015
  *      Author: tony
  */
+#include <queue>
 
 #include "ITC.h"
  
@@ -269,7 +270,7 @@ std::set<const Util::triple<const Planner::FFEvent *, double> *> ITC::extractCon
 std::set<const Util::triple<const Planner::FFEvent *, 
 	double> *> ITC::checkTemporalConsistencyBF(stn::ColinSTNImpl * network,
 		const Planner::FFEvent * start) {
-	cout << "Bellman–Ford" << endl;
+	// cout << "Bellman–Ford" << endl;
 	std::map<const Planner::FFEvent *, double> dist;
 	std::map<const Planner::FFEvent *, const Planner::FFEvent *> ptr;
 	initialiseLC(network, start, dist);
@@ -303,8 +304,8 @@ std::set<const Util::triple<const Planner::FFEvent *,
 			double> edge = *edgeItr;
 		if (dist[edge.first] + edge.second - dist[edge.third] 
 			< -stn::ColinSTNImpl::ACCURACY) {
-			cout << "Negative Cycle Detected: " << dist[edge.first] << " + " 
-				<< edge.second << " < " << dist[edge.third] << endl;
+			// cout << "Negative Cycle Detected: " << dist[edge.first] << " + " 
+			// 	<< edge.second << " < " << dist[edge.third] << endl;
 			/*Uses same extraction technique as Label-Correcting*/
 			std::set<const Util::triple<const Planner::FFEvent *, double> *> conflicts;
 			return extractConflictsLC(edge.third, conflicts, network, ptr);
@@ -360,8 +361,14 @@ std::set<const Util::triple<const Planner::FFEvent *,
 				//Check for negative cycle
 				if ((node_i == node_j) && (dist[node_i][node_j] < -stn::ColinSTNImpl::ACCURACY)) {
 					// cout << "Negative Cycle Found: " << dist[node_i][node_i] << endl;
+					//Cycle through predecessors to ensure you are in the cycle
+					const Planner::FFEvent * start = node_i;
+					const Planner::FFEvent * end = node_i;
+					for (int i = 0; i < network->size(); i++) {
+						end = ptr[start][end];
+					}
 					std::set<const Util::triple<const Planner::FFEvent *, double> *> conflicts;
-					return extractConflictsFW(node_i, node_i, conflicts, network, ptr);
+					return extractConflictsFW(start, end, conflicts, network, ptr);
 				}
 			}
 		}
@@ -385,5 +392,135 @@ std::set<const Util::triple<const Planner::FFEvent *, double> *> ITC::extractCon
 	}
 	conflicts.insert(edge);
 	return extractConflictsFW(start, ptr[start][end], conflicts, network, ptr);
+}
+
+/**
+ * Slightly modified from this work: 
+ * 
+ * Shortest Paths Fastests Algorithm - think optimized Bellman-Ford,
+ * Assumes nodes have numbers from 0 to num_nodes (inclusive).
+ * Author: Peng Yu
+ * Source: https://github.com/yu-peng/cdru/blob/master/graph_theory/spfa.py
+ *
+ */
+std::set<const Util::triple<const Planner::FFEvent *, 
+	double> *> ITC::checkTemporalConsistencySPFA(
+		stn::ColinSTNImpl * network,
+		const Planner::FFEvent * source) {
+
+	int num_nodes = network->size();
+	map<const Planner::FFEvent *, double> distance;
+	map<const Planner::FFEvent *, bool> currently_in_queue;
+	map<const Planner::FFEvent *, int> times_in_queue;
+	map<const Planner::FFEvent *, const Planner::FFEvent *> predecessor;
+
+
+	//Initialise vars
+	for (int i = 0; i < num_nodes; i++) {
+		const Planner::FFEvent * node_i = network->getVertex(i);
+		distance[node_i] = stn::ColinSTNImpl::MAX_ACTION_SEPARATION;
+		currently_in_queue[node_i] = false;
+		times_in_queue[node_i] = 0;
+		predecessor[node_i] = NULL;
+	}
+
+	//Initialise queue
+	std::queue<const Planner::FFEvent *> q;
+
+	distance[source] = 0;
+	currently_in_queue[source] = true;
+	times_in_queue[source] = 1;
+	q.push(source);
+
+	bool negative_cycle_exists = false;
+
+	while ((!q.empty()) && (!negative_cycle_exists)) {
+		const Planner::FFEvent * node = q.front();
+		q.pop();
+		currently_in_queue[node] = false;
+		const std::vector<const Util::triple<const Planner::FFEvent *, 
+			double> *> outEdges = network->getOutEdges(node);
+		std::vector<const Util::triple<const Planner::FFEvent *, 
+			double> *>::const_iterator outEdgeItr = outEdges.begin();
+
+		for (; outEdgeItr != outEdges.end(); outEdgeItr++) {
+			const Planner::FFEvent * neighbor = (*outEdgeItr)->third;
+			if ((distance[neighbor] == stn::ColinSTNImpl::MAX_ACTION_SEPARATION) ||
+				(distance[neighbor] > distance[node] + (*outEdgeItr)->second 
+					+ stn::ColinSTNImpl::ACCURACY)){
+                
+				predecessor[neighbor] = node;
+
+				distance[neighbor] = distance[node] + (*outEdgeItr)->second;
+				if (!currently_in_queue[neighbor]) {
+					currently_in_queue[neighbor] = true;
+					times_in_queue[neighbor] += 1;
+					if (times_in_queue[neighbor] > num_nodes) {
+						negative_cycle_exists = true;
+						// cout << "Found a cycle that is negative" << endl;
+						break;
+					}
+					q.push(neighbor);
+				}
+			}
+		}
+	}
+	if (negative_cycle_exists) {
+		map<const Planner::FFEvent *, bool> visited;
+		for (int i = 0; i < num_nodes; i++) {
+			const Planner::FFEvent * node_i = network->getVertex(i);
+			visited[node_i] = false;
+		}
+		
+		std::set<const Util::triple<const Planner::FFEvent *, 
+			double> *> negative_cycle;
+
+		for (int i = 0; i < num_nodes; i++) {
+			const Planner::FFEvent * node = network->getVertex(i);
+			if (!visited[node]) {
+				// Here we are extracting cycle in predecessor graph.
+				// If we find any cycle it is necessarily negative cycle
+				// because predecessor graph cannot be cyclic otherwise.
+				const Planner::FFEvent * potential_cycle_node = node;
+
+				//Cycle through predecessors to ensure you are in the cycle
+				for (int i = 0; i < num_nodes; i++) {
+					if (predecessor[potential_cycle_node] == NULL) {
+						break;
+					}
+					potential_cycle_node = predecessor[potential_cycle_node];
+				}
+
+				std::set<const Util::triple<const Planner::FFEvent *,
+					double> *> potential_cycle;
+
+				while ((predecessor[potential_cycle_node] != NULL) &&
+					(!visited[predecessor[potential_cycle_node]])) {
+
+					potential_cycle_node = predecessor[potential_cycle_node];
+					const Util::triple<const Planner::FFEvent *, double> * edge 
+						= network->STN::getEdge(predecessor[potential_cycle_node], potential_cycle_node);
+					potential_cycle.insert(edge);
+					visited[potential_cycle_node] = true;
+				}
+				// If the predecessor of the last node was already visited in this run we have our cycle.
+				// it is not necessary spanning the entire array (we could have "entered" on cycle through
+				// simple path.
+				const Util::triple<const Planner::FFEvent *, double> * edge = network->STN::getEdge(
+					predecessor[potential_cycle_node], potential_cycle_node);
+				if (std::find(potential_cycle.begin(), potential_cycle.end(), 
+					edge) != potential_cycle.end()) {
+
+					negative_cycle = potential_cycle;
+					break;
+				}
+				visited[node] = true;
+			}
+		}
+		assert(negative_cycle.size());
+		return negative_cycle;
+    }
+	std::set<const Util::triple<const Planner::FFEvent *, double> *> emptySet;
+	return emptySet;
 }
 }

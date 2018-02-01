@@ -27,7 +27,9 @@ PlannerExecutionReader::PlannerExecutionReader(string plannerOutput,
 	if (relaxedPlanSize > 0) {
 		list<string> relaxedPlanStr = getRelaxedPlanStr(plannerOutput);
 		relaxedPlan = getRelaxedPlan(relaxedPlanStr, tils);
-		helpfulActions = getHelpfulActions(relaxedPlan, state, timeStamp);
+		if (Planner::FF::helpfulActions) {
+			helpfulActions = getHelpfulActions(relaxedPlan, state, timeStamp);
+		}
 	}
 }
 

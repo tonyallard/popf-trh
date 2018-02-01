@@ -7,8 +7,7 @@
 
 #include "TemporalConflictRelaxation.h"
 #include "../globals.h"
- #include "../solver-clp.h"
- #include <typeinfo>
+#include "../solver-clp.h"
 
 using namespace hRelax;
 using namespace std;
@@ -77,7 +76,7 @@ map<int, double> TemporalConflictRelaxation::solve() {
 		= constraintRows.begin();
 	for (; rowItr != constraintRows.end(); rowItr++) {
 		vector<pair<int,double> > constraintRow = *rowItr;
-		model->addRow(constraintRow, EPSILON, INF_UPPER_BOUND);
+		model->addRow(constraintRow, 0.0, INF_UPPER_BOUND);
 	}
 	
 	//Minimise the objective function

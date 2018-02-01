@@ -8,6 +8,7 @@
 #include <limits>
 #include <sstream>
 #include <iostream>
+#include <queue>
 
 #include "ColinSTNImpl.h"
 #include "../RPGBuilder.h"
@@ -110,22 +111,84 @@ std::string ColinSTNImpl::getMatixLegendStr() {
 /**
  * Floyd-Warshall algorithm
  */
-bool ColinSTNImpl::isConsistent() {
-	std::vector<std::vector<double> > matrix = toMatrix();
-	for (int k = 0; k < size(); k++) {
-		for (int i = 0; i < size(); i++) {
-			for (int j = 0; j < size(); j++) {
-				double d = matrix[i][k] + matrix[k][j];
-				if (matrix[i][j] - d > ACCURACY) {
-					matrix[i][j] = d;
-				}
-				if ((i==j) && (matrix[i][j] < -ACCURACY)) {
-					return false;
+// bool ColinSTNImpl::isConsistent() {
+// 	std::vector<std::vector<double> > matrix = toMatrix();
+// 	for (int k = 0; k < size(); k++) {
+// 		for (int i = 0; i < size(); i++) {
+// 			for (int j = 0; j < size(); j++) {
+// 				double d = matrix[i][k] + matrix[k][j];
+// 				if (matrix[i][j] - d > ACCURACY) {
+// 					matrix[i][j] = d;
+// 				}
+// 				if ((i==j) && (matrix[i][j] < -ACCURACY)) {
+// 					cout << "Negative Cycle: " << std::setprecision(6) << matrix[i][j] << endl;
+// 					return false;
+// 				}
+// 			}
+// 		}
+// 	}
+// 	return true;
+// }
+
+bool ColinSTNImpl::isConsistent(const Planner::FFEvent * source) {
+	
+	int num_nodes = size();
+	map<const Planner::FFEvent *, double> distance;
+	map<const Planner::FFEvent *, bool> currently_in_queue;
+	map<const Planner::FFEvent *, int> times_in_queue;
+	map<const Planner::FFEvent *, const Planner::FFEvent *> predecessor;
+
+
+	//Initialise vars
+	for (int i = 0; i < num_nodes; i++) {
+		const Planner::FFEvent * node_i = getVertex(i);
+		distance[node_i] = stn::ColinSTNImpl::MAX_ACTION_SEPARATION;
+		currently_in_queue[node_i] = false;
+		times_in_queue[node_i] = 0;
+		predecessor[node_i] = NULL;
+	}
+
+	//Initialise queue
+	std::queue<const Planner::FFEvent *> q;
+
+	distance[source] = 0;
+	currently_in_queue[source] = true;
+	times_in_queue[source] = 1;
+	q.push(source);
+
+	bool negative_cycle_exists = false;
+
+	while ((!q.empty()) && (!negative_cycle_exists)) {
+		const Planner::FFEvent * node = q.front();
+		q.pop();
+		currently_in_queue[node] = false;
+		const std::vector<const Util::triple<const Planner::FFEvent *, 
+			double> *> outEdges = getOutEdges(node);
+		std::vector<const Util::triple<const Planner::FFEvent *, 
+			double> *>::const_iterator outEdgeItr = outEdges.begin();
+
+		for (; outEdgeItr != outEdges.end(); outEdgeItr++) {
+			const Planner::FFEvent * neighbor = (*outEdgeItr)->third;
+			if ((distance[neighbor] == stn::ColinSTNImpl::MAX_ACTION_SEPARATION) ||
+				(distance[neighbor] > distance[node] + (*outEdgeItr)->second 
+					+ ACCURACY)){
+                
+				predecessor[neighbor] = node;
+
+				distance[neighbor] = distance[node] + (*outEdgeItr)->second;
+				if (!currently_in_queue[neighbor]) {
+					currently_in_queue[neighbor] = true;
+					times_in_queue[neighbor] += 1;
+					if (times_in_queue[neighbor] > num_nodes) {
+						negative_cycle_exists = true;
+						break;
+					}
+					q.push(neighbor);
 				}
 			}
 		}
 	}
-	return true;
+	return !negative_cycle_exists;
 }
 
 bool ColinSTNImpl::FIFOLabelCorrectingAlgorithm() {
