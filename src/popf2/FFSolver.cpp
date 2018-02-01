@@ -1557,6 +1557,7 @@ HTrio FF::calculateHeuristicAndSchedule(ExtendedMinimalState & theState, Extende
                 timeStamp, 0, helpfulActions, pddlFactory);
         h = result.first;
         makespanEstimate = result.second;
+        makespan = result.second;
 
     } else {
         //Use RPG Heuristic
@@ -1676,6 +1677,7 @@ HTrio FF::calculateHeuristicAndCompressionSafeSchedule(ExtendedMinimalState & th
                 now, theState.timeStamp, 0, helpfulActions, pddlFactory);
         h = result.first;
         makespanEstimate = result.second;
+        makespan = result.second;
     } else {
         clock_t begin_time = clock();
     	h = RPGBuilder::getHeuristic()->getRelaxedPlan(theState.getInnerState(), &(theState.startEventQueue), minTimestamps, theState.timeStamp,
@@ -5115,7 +5117,7 @@ Solution FF::search(bool & reachedGoal)
 
     auto_ptr<StatesToDelete> statesKept(new StatesToDelete());
 
-    if (ffDebug || true) cout << "Initial heuristic = " << bestHeuristic.heuristicValue << "\n";
+    if (ffDebug || true) cout << "Initial heuristic = (" << bestHeuristic.heuristicValue << " | " << bestHeuristic.makespan << ")\n";
 
     if (bestHeuristic.heuristicValue == -1.0) {
         reachedGoal = false;
