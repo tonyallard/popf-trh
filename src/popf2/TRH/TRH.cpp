@@ -36,6 +36,8 @@ double TRH::TIME_SPENT_IN_HEURISTIC = 0.0;
 double TRH::TIME_SPENT_IN_PRINTING_TO_FILE = 0.0;
 double TRH::TIME_SPENT_CONVERTING_PDDL_STATE = 0.0;
 int TRH::STATES_EVALUATED_IN_HEURISTIC = 0;
+int TRH::CURRENT_SEARCH_DEPTH = 0;
+int TRH::CURRENT_RELAXED_PLAN_LENGTH = 0;
 int TRH::initialState_HeuristicStateEvals = -1;
 double TRH::initialState_HeuristicCompTime = 0.0;
 
@@ -108,6 +110,9 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	if (hVal.first == 0.0) {
 		// cout << "Executed Plan" << endl;
 		// Planner::FFEvent::printPlan(hVal.second);
+		//Record current search characteristics
+		CURRENT_SEARCH_DEPTH = header.size() + now.size();
+		CURRENT_RELAXED_PLAN_LENGTH = reader.getRelaxedPlan().size();
 		std::pair<Planner::MinimalState, list<Planner::FFEvent> > solution = reprocessPlan(hVal.second);
 		Planner::FF::workingBestSolution.update(solution.second, solution.first.temporalConstraints, 
 			Planner::FF::evaluateMetric(solution.first, list<Planner::FFEvent>(), false));

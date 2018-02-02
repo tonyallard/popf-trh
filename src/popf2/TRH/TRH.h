@@ -78,6 +78,8 @@ public:
 	static double TIME_SPENT_IN_PRINTING_TO_FILE;
 	static double TIME_SPENT_CONVERTING_PDDL_STATE;
     static int STATES_EVALUATED_IN_HEURISTIC;
+    static int CURRENT_SEARCH_DEPTH;
+    static int CURRENT_RELAXED_PLAN_LENGTH;
     static int initialState_HeuristicStateEvals;
     static double initialState_HeuristicCompTime;
 	
