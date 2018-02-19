@@ -8,6 +8,7 @@
 #include "TemporalConflictRelaxation.h"
 #include "../globals.h"
 #include "../solver-clp.h"
+#include "../stn/ColinSTNImpl.h"
 
 using namespace hRelax;
 using namespace std;
@@ -211,9 +212,13 @@ void TemporalConflictRelaxation::addRelaxableConstraints(
 		//If the edge is not a TIL constraint, it is not a duration constraint
 		//and it is not the link between a TIL and the next action
 		//then it is relaxable
-		if ((tilConstraints.find(conflict) == tilConstraints.end()) //Ignore til constraints
-				&& (conflict->first->action != conflict->third->action) //Ignore duration constraints
-				&& (conflict->first->time_spec != VAL::time_spec::E_AT)) { //Ignore precedence between a TIL and the next action
+		// if ((tilConstraints.find(conflict) == tilConstraints.end()) //Ignore til constraints
+		// 		&& (conflict->first->action != conflict->third->action) //Ignore duration constraints
+		// 		&& (conflict->first->time_spec != VAL::time_spec::E_AT)) { //Ignore precedence between a TIL and the next action
+		// 	relaxableConstraints.insert(conflict);
+		// }
+		if ((conflict->first->action == conflict->third->action) &&
+			(conflict->third->pairWithStep - conflict->first->pairWithStep == 1)) {
 			relaxableConstraints.insert(conflict);
 		}
 	}
