@@ -35,14 +35,13 @@ private:
 
 	int statesEvaluatedInHeuristic;
 	int deadEndsEncounteredInHeuristic;
-	int relaxedPlanSize;
+	int relaxedPlanLength;
 	list<Planner::FFEvent> relaxedPlan;
 	list<Planner::ActionSegment> helpfulActions;
 	bool solutionFound;
 
 	int getHeuristicStatesEvaluated(const string & plannerOutput);
 	int getDeadEndsEncountered(const string & plannerOutput);
-	int getRelaxedPLanLength(const string & plannerOutput);
 	list<string> getRelaxedPlanStr(const string & output);
 	list<Planner::ActionSegment> getHelpfulActions(
 		const list<Planner::FFEvent> & plan,
@@ -65,8 +64,8 @@ public:
 		return deadEndsEncounteredInHeuristic;
 	}
 
-	inline int getRelaxedPLanLength() {
-		return relaxedPlanSize;
+	inline int getRelaxedPlanLength() {
+		return relaxedPlanLength;
 	}
 
 	inline list<Planner::ActionSegment> & getHelpfulActions() {

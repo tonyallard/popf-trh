@@ -22,9 +22,9 @@ PlannerExecutionReader::PlannerExecutionReader(string plannerOutput,
 
 	statesEvaluatedInHeuristic = getHeuristicStatesEvaluated(plannerOutput);
 	deadEndsEncounteredInHeuristic = getDeadEndsEncountered(plannerOutput);
-	relaxedPlanSize = getRelaxedPLanLength(plannerOutput);
 	solutionFound = getIsSolutionFound(plannerOutput);
-	if (relaxedPlanSize > 0) {
+	relaxedPlanLength = 0;
+	if (solutionFound) {
 		list<string> relaxedPlanStr = getRelaxedPlanStr(plannerOutput);
 		relaxedPlan = getRelaxedPlan(relaxedPlanStr, tils);
 		if (Planner::FF::helpfulActions) {
@@ -58,18 +58,6 @@ int PlannerExecutionReader::getDeadEndsEncountered(const string & plannerOutput)
 		string deadEndsStr = plannerOutput.substr(pos + H_DEAD_ENDS_DELIM.size(), posEnd-(pos + H_DEAD_ENDS_DELIM.size()));
 		int deadEnds = stoi(deadEndsStr);
 		return deadEnds;
-	}
-	return -1;
-}
-
-int PlannerExecutionReader::getRelaxedPLanLength(const string & plannerOutput) {
-	int pos = plannerOutput.find(RELAXED_PLAN_SIZE_DELIM);
-	if (pos != -1) {
-		int posEnd = plannerOutput.find("\n", pos);
-		string relaxedPlanSizeStr = plannerOutput.substr(pos + RELAXED_PLAN_SIZE_DELIM.size(), 
-			posEnd-(pos + RELAXED_PLAN_SIZE_DELIM.size()));
-		int relaxedPlanSize = stoi(relaxedPlanSizeStr);
-		return relaxedPlanSize;
 	}
 	return -1;
 }
@@ -137,7 +125,6 @@ list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(
 list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planStr, 
 	const std::list<PDDL::TIL> & tils) {
 	list<Planner::FFEvent> rPlan;
-
 	list<string>::const_iterator planStrItr = planStr.begin();
 	for (; planStrItr != planStr.end(); planStrItr++) {
 		string actionStr = *planStrItr;
@@ -175,11 +162,14 @@ list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planS
 				start_snap_action.pairWithStep = end_snap_action.pairWithStep + 1;
 			}
 			rPlan.push_back(start_snap_action);
+			relaxedPlanLength++;
 			if (end_snap_action_defined) {
 				rPlan.push_back(end_snap_action);
+				relaxedPlanLength++;
 			}
 		} else { //Check if it is a TIL
 			std::list<PDDL::TIL>::const_iterator tilItr = tils.begin();
+			bool found = false;
 			for (; tilItr != tils.end(); tilItr++) {
 				//case insensitive find
 				string tilName = tilItr->getName();
@@ -189,9 +179,15 @@ list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planS
 					Planner::FFEvent til_action(tilItr->getTILIndex());
 					til_action.lpTimestamp = startTime;
 					rPlan.push_back(til_action);
-
+					relaxedPlanLength++;
+					found = true;
+					break;
 				}
-				//else probably a partial action: ignore
+			}
+			//else probably a partial action: add 1
+			if (!found) {
+				relaxedPlanLength++;
+				// cout << actionStr << " not Found." << endl;
 			}
 		}	
 	}
