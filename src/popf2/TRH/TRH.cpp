@@ -7,6 +7,7 @@
 #include <memory>
 #include <limits>
 #include <random>
+#include <cmath>
 
 #include "TRH.h"
 #include "../util/Util.h"
@@ -120,7 +121,10 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 		helpfulActions.insert(helpfulActions.end(), reader.getHelpfulActions().begin(), 
 			reader.getHelpfulActions().end());
 	}
-	return std::make_pair (hVal.first, reader.getRelaxedPlan().size());
+	double hVal_double = (int)round((hVal.first * 1000));
+	// cout << "hVal_double: " << hVal_double << endl;
+	// cout << "Relaxed Plan Len::" << reader.getRelaxedPlanLength() << endl;
+	return std::make_pair (hVal_double, reader.getRelaxedPlanLength());
 }
 
 void TRH::addRelaxedPlan(list<Planner::FFEvent> & proposedPlan, list<Planner::FFEvent> & relaxedPlan) {
