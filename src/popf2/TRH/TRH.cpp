@@ -107,7 +107,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	//Run relaxation heuristic on relaxed plan
 	hRelax::HRelax * relaxationHeuristic = hRelax::HRelax::getInstance();
 	pair<double, list<Planner::FFEvent> > hVal = relaxationHeuristic->getHeuristic(proposedPlan, 
-			reader.getRelaxedPLanLength());
+			reader.getRelaxedPlanLength());
 	// cout << hVal.first << endl;
 	// exit(0);
 	if (hVal.first == 0.0) {

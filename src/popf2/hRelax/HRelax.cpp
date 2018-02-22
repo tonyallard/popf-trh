@@ -67,8 +67,8 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 	// cout << "Is STN still consistent? " << (consistent > 0 ? "yes" : "no")
 	// 		<< std::endl;
 	if (consistent) {
-		if (relaxedPlanLength > 2) {
-			return pair<double, list<Planner::FFEvent> >(EPSILON / 10.0, plan);
+		if (relaxedPlanLength > 0) {
+			return pair<double, list<Planner::FFEvent> >(EPSILON, plan);
 		}
 		//The relaxed plan is a solution to the original problem
 		executePlan(plan, stn, initialEvent);
