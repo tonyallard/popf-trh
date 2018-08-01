@@ -1,11 +1,19 @@
 About
 -----
 
-This directory contains the planner POPF2.  The original incarnation of POPF
-is described in the ICAPS 2010 paper "Forward-Chaining Partial-Order Planning."
-by Amanda Coles, Andrew Coles, Maria Fox and Derek Long.  This version
-extends POPF by introducing any-time search, allowing it to optimise solution
-quality.
+This directory contains the planner POPF-TRH.  
+
+
+The original incarnation of POPF, a planner for domains with time windows.  
+For more details, see the papers:
+
+"A TIL-Relaxed Heuristic for Planning with Time Windows", T. Allard, 
+P. Haslum, Ch. Gretton, ICAPS 2018.
+
+It is built upon the POPF2 planner. The original POPF planner is described in 
+the ICAPS 2010 paper "Forward-Chaining Partial-Order Planning." by Amanda Coles, 
+Andrew Coles, Maria Fox and Derek Long. The POPF2 version extends POPF by introducing 
+any-time search, allowing it to optimise solution quality.
 
 Compiling
 ---------
@@ -23,6 +31,13 @@ sudo apt-get install cmake coinor-libcbc-dev coinor-libclp-dev \
 
 
 After that, run ./build
+
+In order to run POPF-TRH, you will need a planner to solve the TIL-Relaxed 
+planning problem. Setting the parameters for this planner can be done in:
+
+./src/colin/TRH/TRH.cpp
+
+We used the standard POPF2 planner in our experiments.
 
 
 Running
