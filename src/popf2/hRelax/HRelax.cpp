@@ -84,6 +84,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 
 	int itrs = 0;
 	while (!consistent) {
+		itrs++;
 		// cout << "Relaxation Iteration " << ++itrs << endl;
 		//Determine constraints involved in 
 		//negative cycle
@@ -136,7 +137,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 
 
 	//Sum relaxations to calculate h-val
-	double heuristic = getHeuristicValue(relaxHist);
+	double heuristic = itrs;//getHeuristicValue(relaxHist);
 	delete initialEvent;
 	return pair<double, list<Planner::FFEvent> >(heuristic, plan);
 }
