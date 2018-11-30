@@ -79,6 +79,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 		double> relaxHist;
 
 	int itrs = 0;
+	double cumulative_relaxation = 0.0;
 	while (!consistent) {
 		// cout << "Relaxation Iteration " << ++itrs << endl;
 		//Determine constraints involved in 
@@ -114,6 +115,14 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 			//for comparison later
 			if (relaxHist.find(relaxation.first) == relaxHist.end()) {
 				relaxHist[relaxation.first] = relaxation.first->second;
+				//Add cumulative relaxation for new constraint
+				cumulative_relaxation += abs(relaxItr->second -
+					relaxItr->first->second);
+			} else {
+				//Add cumulative relaxation for a constraint
+				//that has been relaxed previously.
+				cumulative_relaxation += abs(relaxItr->second -
+				relaxHist[relaxation.first]);
 			}
 			//Get the delta reqiured to make STN consistent
 			stn.updateEdgeWeight(relaxation.first->first, relaxation.first->third,
@@ -132,7 +141,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 
 
 	//Sum relaxations to calculate h-val
-	double heuristic = getHeuristicValue(relaxHist);
+	double heuristic = cumulative_relaxation; //getHeuristicValue(relaxHist);
 	delete initialEvent;
 	return pair<double, list<Planner::FFEvent> >(heuristic, plan);
 }
