@@ -89,7 +89,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 			// itc->checkTemporalConsistencyFW(&stn);
 
 		// cout << "Found " << conflictedConstraints.size()
-		// 	<< " conflicted constraints" << std::endl;
+		//	<< " conflicted constraints" << std::endl;
 
 		if (!conflictedConstraints.size()) {
 			cerr << "Error: No conflicted constraints found" << endl;

@@ -74,8 +74,11 @@ PDDLState PDDLStateFactory::getDeTILedPDDLState(
 	return theState;
 }
 
-PDDL::Metric PDDLStateFactory::getMetric() {
+const PDDL::Metric * PDDLStateFactory::getMetric() {
 	Planner::RPGBuilder::Metric * metric = Planner::RPGBuilder::getMetric();
+	if (metric == 0) {
+		return PDDL::Metric::NO_METRIC;
+	}
 	list<std::string> variables;
 	list<int>::const_iterator varItr = metric->variables.begin();
 	for (; varItr != metric->variables.end(); varItr++) {
@@ -90,7 +93,7 @@ PDDL::Metric PDDLStateFactory::getMetric() {
 		}
 		variables.push_back(var);
 	}
-	PDDL::Metric aMetric(metric->minimise, variables);
+	const PDDL::Metric * aMetric = new PDDL::Metric(metric->minimise, variables);
 	return aMetric;
 }
 

@@ -14,6 +14,7 @@
 #include "PDDLObject.h"
 #include "Proposition.h"
 #include "PDDLState.h"
+#include "Metric.h"
 
 #include "../minimalstate.h"
 #include "../RPGBuilder.h"
@@ -25,7 +26,11 @@ class PDDLStateFactory {
 public:
 
 	PDDLStateFactory(const Planner::MinimalState &initialState, std::list<std::pair<std::string, std::string> > constants);
-
+	~PDDLStateFactory() {
+		if (metric) {
+			delete metric;
+		}
+	};
 	PDDLState getDeTILedPDDLState(const Planner::MinimalState & state,
 			const std::list<Planner::FFEvent>& plan,
 			double timestamp, double heuristic,
@@ -44,7 +49,7 @@ private:
 	std::list<PDDL::PNE> staticPNEs;
 	std::set<PDDLObject> objectParameterTable;
 	std::list<PDDL::Proposition> goals;
-	PDDL::Metric metric;
+	const PDDL::Metric * metric;
 
 	std::list<PDDL::Proposition> getPropositions(
 					const Planner::MinimalState & state, std::set<PDDLObject> & objectSymbolTable);
@@ -55,7 +60,7 @@ private:
 			std::list<PDDL::PNE> dynamicPNEs,
 			std::set<PDDLObject> & objectSymbolTable);
 	std::list<PDDL::Proposition> getPropositionalGoals(std::set<PDDLObject> & objectSymbolTable);
-	PDDL::Metric getMetric();
+	const PDDL::Metric * getMetric();
 
 	void addTILPropositions(
 		const std::list<PDDL::Proposition> & requiredObjects,

@@ -61,7 +61,7 @@ private:
 		PDDL::PDDLStateFactory pddlFactory, int stateNum);
 	pair<PDDL::PDDLDomain, PDDL::PDDLState> writeStateToFile(const Planner::MinimalState & state,
 		std::list<Planner::FFEvent>& plan, double timestamp, double heuristic, 
-		PDDL::PDDLStateFactory pddlFactory, const string & filename);
+		PDDL::PDDLStateFactory & pddlFactory, const string & filename);
 	void removeTempState(string fileName);
 
 	std::pair<Planner::MinimalState, list<Planner::FFEvent> > reprocessPlan(list<Planner::FFEvent> & oldSoln);
@@ -86,7 +86,7 @@ public:
 	pair<double, int> getHeuristic(Planner::ExtendedMinimalState & theState,
 		std::list<Planner::FFEvent>& plan, std::list<Planner::FFEvent> & now,
 		double timestamp, double heuristic, list<Planner::ActionSegment> & helpfulActions,
-		PDDL::PDDLStateFactory pddlFactory);
+		PDDL::PDDLStateFactory & pddlFactory);
 };
 }
 

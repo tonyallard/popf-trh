@@ -1496,7 +1496,7 @@ void populateTimestamps(vector<double> & minTimestamps, double & makespan, list<
 }
 
 
-HTrio FF::calculateHeuristicAndSchedule(ExtendedMinimalState & theState, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, ParentData * const incrementalData, list<ActionSegment> & helpfulActions, list<FFEvent> & header, list<FFEvent> & now, const int & stepID, PDDL::PDDLStateFactory pddlFactory, bool considerCache, map<double, list<pair<int, int> > > * justApplied, double tilFrom)
+HTrio FF::calculateHeuristicAndSchedule(ExtendedMinimalState & theState, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, ParentData * const incrementalData, list<ActionSegment> & helpfulActions, list<FFEvent> & header, list<FFEvent> & now, const int & stepID, PDDL::PDDLStateFactory & pddlFactory, bool considerCache, map<double, list<pair<int, int> > > * justApplied, double tilFrom)
 {
 
     //cout << "Evaluating a state reached by " << header.size() + now.size() << " snap actions\n";
@@ -1641,7 +1641,7 @@ HTrio FF::calculateHeuristicAndSchedule(ExtendedMinimalState & theState, Extende
 }
 
 
-HTrio FF::calculateHeuristicAndCompressionSafeSchedule(ExtendedMinimalState & theState, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, list<ActionSegment> & helpfulActions, list<FFEvent> & header, list<FFEvent> & now, const int & stepID, PDDL::PDDLStateFactory pddlFactory, map<double, list<pair<int, int> > > * justApplied, double tilFrom)
+HTrio FF::calculateHeuristicAndCompressionSafeSchedule(ExtendedMinimalState & theState, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, list<ActionSegment> & helpfulActions, list<FFEvent> & header, list<FFEvent> & now, const int & stepID, PDDL::PDDLStateFactory & pddlFactory, map<double, list<pair<int, int> > > * justApplied, double tilFrom)
 {
     assert(!scheduleToMetric);
     //cout << "Evaluating a state reached by " << header.size() + now.size() << " snap actions\n";
@@ -2021,7 +2021,7 @@ void ExtendedMinimalState::deQueueStep(const int & actID, const int & stepID)
     assert(pwItr != pwEnd);
 
 }
-void FF::evaluateStateAndUpdatePlan(auto_ptr<SearchQueueItem> & succ, ExtendedMinimalState & state, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, ParentData * const incrementalData, list<ActionSegment> & helpfulActionsExport, const ActionSegment & actID, list<FFEvent> & header, PDDL::PDDLStateFactory pddlFactory)
+void FF::evaluateStateAndUpdatePlan(auto_ptr<SearchQueueItem> & succ, ExtendedMinimalState & state, ExtendedMinimalState * prevState, set<int> & goals, set<int> & goalFluents, ParentData * const incrementalData, list<ActionSegment> & helpfulActionsExport, const ActionSegment & actID, list<FFEvent> & header, PDDL::PDDLStateFactory & pddlFactory)
 {
 
     #ifdef POPF3ANALYSIS

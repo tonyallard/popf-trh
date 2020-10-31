@@ -11,6 +11,8 @@ using namespace std;
 
 namespace PDDL {
 
+const PDDL::Metric * Metric::NO_METRIC = new Metric();
+
 std::ostream & operator<<(std::ostream & output, const Metric & metric) {
 	//If there is no metric return
 	if (!metric.variables.size()) {

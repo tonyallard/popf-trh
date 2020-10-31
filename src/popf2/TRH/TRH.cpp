@@ -28,7 +28,7 @@ namespace TRH {
 TRH * TRH::INSTANCE = NULL;
 
 const char * TRH::H_CMD = "./lib/popf3-clp";
-const string TRH::TEMP_FILE_PATH = "/mnt/ramdisk/";//"/tmp/";
+const string TRH::TEMP_FILE_PATH = "/mnt/ramdisk/"; //"/tmp/";
 const string TRH::TEMP_FILE_PREFIX = "temp";
 const string TRH::TEMP_DOMAIN_SUFFIX = "-domain";
 const string TRH::TEMP_FILE_EXT = ".pddl";
@@ -68,7 +68,7 @@ int TRH::generateNewInstanceID() {
 pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 		std::list<Planner::FFEvent>& header, std::list<Planner::FFEvent> & now, 
 		double timestamp, double heuristic, list<Planner::ActionSegment> & helpfulActions, 
-		PDDL::PDDLStateFactory pddlFactory) {
+		PDDL::PDDLStateFactory & pddlFactory) {
 
 	const Planner::MinimalState & state = theState.getInnerState();
 
@@ -280,7 +280,7 @@ std::pair<Planner::MinimalState, list<Planner::FFEvent> > TRH::reprocessPlan(lis
 				eventToApply->divisionID, Planner::RPGHeuristic::emptyIntList);
 		}
 		if (stepID == lastStep) {
-			Planner::FF::scheduleToMetric = true;
+			//Planner::FF::scheduleToMetric = true;
 		}
 
 		const auto_ptr<Planner::ParentData> incrementalData(Planner::FF::allowCompressionSafeScheduler ? 
@@ -443,7 +443,7 @@ void TRH::writeBadState(const Planner::MinimalState & state,
 
 pair<PDDL::PDDLDomain, PDDL::PDDLState> TRH::writeStateToFile(const Planner::MinimalState & state,
 	std::list<Planner::FFEvent>& plan, double timestamp, double heuristic, 
-	PDDL::PDDLStateFactory pddlFactory, const string & filename) {
+	PDDL::PDDLStateFactory & pddlFactory, const string & filename) {
 
 	clock_t begin_time = clock();
 

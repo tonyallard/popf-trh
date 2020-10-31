@@ -104,7 +104,10 @@ void PDDLState::writeStateToFile(string filePath, string fileName) {
 	myFile << toString();
 	myFile << "\t)" << endl;
 	myFile << "\t(:goal (and " << getGoalString() << "))" << endl;
-	myFile << "\t(:metric " << metric << ")" << endl;
+	if (metric != PDDL::Metric::NO_METRIC) {
+		myFile << "\t(:metric " << *metric << ")" << endl;
+	}
+
 	myFile << ")";
 	myFile.close();
 }
@@ -129,7 +132,9 @@ void PDDLState::writeDeTILedStateToFile(std::string filePath,
 	myFile << "\t)" << endl;
 	myFile << "\t(:goal (and " << getGoalString() << " " << getTILGoalString()
 			<< "))" << endl;
-	myFile << "\t(:metric " << metric << ")" << endl;
+	if (metric != PDDL::Metric::NO_METRIC) {
+		myFile << "\t(:metric " << *metric << ")" << endl;
+	}
 	myFile << ")";
 	myFile.close();
 }

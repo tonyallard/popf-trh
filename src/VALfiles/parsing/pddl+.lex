@@ -12,6 +12,7 @@ extern "C" int yywrap();
 
 %}
 %option case-insensitive
+%option noyywrap
 
 char [a-zA-Z_]
 digit [0-9]
