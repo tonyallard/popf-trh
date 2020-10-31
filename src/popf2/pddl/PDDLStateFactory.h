@@ -27,7 +27,7 @@ public:
 
 	PDDLStateFactory(const Planner::MinimalState &initialState, std::list<std::pair<std::string, std::string> > constants);
 	~PDDLStateFactory() {
-		if (metric) {
+		if (metric != PDDL::Metric::NO_METRIC) {
 			delete metric;
 		}
 	};
