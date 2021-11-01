@@ -217,8 +217,12 @@ std::string getExpressionString(const VAL::expression * exp) {
 	const VAL::func_term * func = dynamic_cast<const VAL::func_term *>(exp);
 	const VAL::special_val_expr * specVal =
 			dynamic_cast<const VAL::special_val_expr *>(exp);
+	const VAL::num_expression * numExp =
+			dynamic_cast<const VAL::num_expression *>(exp);
 	const VAL::int_expression * intExp =
 			dynamic_cast<const VAL::int_expression *>(exp);
+	const VAL::float_expression * floatExp =
+			dynamic_cast<const VAL::float_expression *>(exp);
 
 	if (comp) {
 		output << "(" << getOperatorString(comp->getOp()) << " "
@@ -251,8 +255,12 @@ std::string getExpressionString(const VAL::expression * exp) {
 			output << "total-time";
 		else
 			output << "?? ";
+	} else if (numExp) {
+		output << numExp->double_value();
 	} else if (intExp) {
 		output << intExp->double_value();
+	} else if (floatExp) {
+		output << floatExp->double_value();
 	} else {
 		cerr << "Something went wrong, unhandled expression." << endl;
 		exp->display(0);
