@@ -47,7 +47,8 @@ private:
 public:
 	static PlanExecutor * getInstance();
 	void updateEventTimings(const std::set<Planner::FFEvent *> & plan,
-		stn::ColinSTNImpl & stn);
+		stn::ColinSTNImpl & stn,
+		const Planner::FFEvent * initalEvent);
 };
 
 }

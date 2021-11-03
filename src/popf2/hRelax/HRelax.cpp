@@ -147,7 +147,7 @@ void HRelax::executePlan(std::list<Planner::FFEvent> & plan,
 	}
 	// Update plan with relaxations for output
 	executor::PlanExecutor * executor = executor::PlanExecutor::getInstance();
-	executor->updateEventTimings(actionList, stn);
+	executor->updateEventTimings(actionList, stn, initialEvent);
 }
 
 /**

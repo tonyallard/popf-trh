@@ -22,45 +22,52 @@ PlanExecutor * PlanExecutor::getInstance() {
 }
 
 
-void PlanExecutor::updateEventTimings(const std::set<Planner::FFEvent *> & plan,
-	stn::ColinSTNImpl & stn) {
-	// createMinimalSTN(stn, plan);
+void PlanExecutor::updateEventTimings(
+	const std::set<Planner::FFEvent *> & plan,
+	stn::ColinSTNImpl & stn,
+	const Planner::FFEvent * initalEvent) {
+	
+	//Floyd-Warshall to determine consistent dispatch times
+	std::vector<std::vector<double> > d = stn.toMatrix();
+	for (int k = 0; k < stn.size(); k++) {
+		for (int i = 0; i < stn.size(); i++) {
+			for (int j = 0; j < stn.size(); j++) {
+				if (d[i][k] + d[k][j] < d[i][j]) {
+					d[i][j] = d[i][k]+d[k][j];
+        			//p[i][j] = p[k][j];
+	  			}
+			}
+		}
+	}
 
-	// Time Dispatching Algorithm
-	std::set<Planner::FFEvent *> remainingActions(plan.begin(), plan.end());
-	set<const Planner::FFEvent *> exploredActions;
+	//Find index of initial event
+	int initialEvtIdx = 0;
+	for (int j = 0; j < stn.size(); j++) {
+		if (stn.getVertex(j) == initalEvent) {
+			initialEvtIdx = j;
+			break;
+		}
+	}
 
-	while (!remainingActions.empty()) {
-		//Find the next action to execute
-		std::set<Planner::FFEvent *>::iterator actItr = remainingActions.begin();
-		Planner::FFEvent * currentAction = NULL;
-		set<const Util::triple<const Planner::FFEvent *, double> *> constraints;
-		bool foundSchedulableAction = false;
-		for (; actItr != remainingActions.end(); actItr++) {
-			currentAction = *actItr;
-			constraints = getPrecedenceConstraints(currentAction, stn);
-			if (constraints.empty() || 
-				containsScheduledActions(currentAction, constraints, 
-					exploredActions)) {
-				foundSchedulableAction = true;
+	for (int i = 0; i < stn.size(); i++) {
+		
+		const Planner::FFEvent * evt = stn.getVertex(i);
+		Planner::FFEvent * event = NULL;
+		for (auto aEvent : plan) {
+			if (evt == &(*aEvent)) {
+				event = &*aEvent;
 				break;
 			}
 		}
-
-		if (!foundSchedulableAction) {
-			cerr << "Could not find an action without constraints." << endl;
-			assert(false);
+		if (d[i][i] < 0) {
+			cerr << "Inconsistent STN found while dispatching." << endl;
+			exit(-1);
 		}
-		//Schedule plan based on 
-		pair<double, double> executionTime = getExecutionTime(currentAction, 
-			constraints);
-		//Update Excution Time
-		currentAction->lpTimestamp = executionTime.first;
-		exploredActions.insert(currentAction);
-		remainingActions.erase(remainingActions.find(currentAction));
+		event->lpTimestamp = d[initialEvtIdx][i];
 	}
-}
 
+}
+  
 /**
  * Create a minimal STN
  * 
