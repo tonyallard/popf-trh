@@ -17,7 +17,6 @@
 #include "Metric.h"
 
 #include "../minimalstate.h"
-#include "../RPGBuilder.h"
 #include "../FFEvent.h"
 
 namespace PDDL {

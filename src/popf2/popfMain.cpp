@@ -351,6 +351,14 @@ int main(int argc, char * argv[])
                 FF::USE_TRH = false;
                 break;
             }
+            case '4': { // turn off early termination of search using TRH
+                TRH::TRH::EARLY_TERMINATION = false;
+                break;
+            }
+            case '5': { //Use relaxtion iterations instead of minimum relaxation
+                TRH::TRH::HEURISTIC_MODE = 1;
+                break;
+            }
             #ifdef POPF3ANALYSIS
             case 'n': {
                 Globals::optimiseSolutionQuality = true;

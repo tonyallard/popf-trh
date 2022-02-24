@@ -24,7 +24,6 @@
 #include "ptree.h"
 #include "../RPGBuilder.h"
 #include "../FFEvent.h"
-#include "../FFSolver.h"
 
 namespace PDDL {
 

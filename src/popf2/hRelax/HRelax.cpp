@@ -25,16 +25,9 @@ const char HRelax::TIL_STRING_DELIM = '-';
 const string HRelax::H_PLAN_DELIM_START = "=====Plan Start====="; 
 const string HRelax::H_PLAN_DELIM_STOP = "=====Plan Stop=====";
 
-HRelax * HRelax::INSTANCE = NULL;
-
-HRelax * HRelax::getInstance() {
-	if (!INSTANCE) {
-		INSTANCE = new HRelax();
-	}
-	return INSTANCE;
-}
-
-pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FFEvent> & plan) {
+pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
+	std::list<Planner::FFEvent> & plan,
+	int relaxedplanLength) {
 	//Create Dummy Initial Event @ t_0 for STN
 	Planner::FFEvent * initialEvent = createInitialEvent();
 
@@ -66,6 +59,10 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 	// cout << "Is STN still consistent? " << (consistent > 0 ? "yes" : "no")
 	// 		<< std::endl;
 	if (consistent) {
+		if ((!earlyTermination) && (relaxedplanLength > 0)) {
+			return pair<double, list<Planner::FFEvent> >(EPSILON, plan);
+		}
+
 		//The relaxed plan is a solution to the original problem
 		executePlan(plan, stn, initialEvent);
 		return pair<double, list<Planner::FFEvent> >(0.0, plan);
@@ -80,7 +77,8 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 
 	int itrs = 0;
 	while (!consistent) {
-		// cout << "Relaxation Iteration " << ++itrs << endl;
+		++itrs;
+		// cout << "Relaxation Iteration " << itrs << endl;
 		//Determine constraints involved in 
 		//negative cycle
 		ITC::ITC * itc = ITC::ITC::getInstance();
@@ -132,7 +130,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(std::list<Planner::FF
 
 
 	//Sum relaxations to calculate h-val
-	double heuristic = getHeuristicValue(relaxHist);
+	double heuristic = heuristicMode ? itrs : getHeuristicValue(relaxHist);
 	delete initialEvent;
 	return pair<double, list<Planner::FFEvent> >(heuristic, plan);
 }

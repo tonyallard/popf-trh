@@ -19,7 +19,6 @@
 #include "TILFactory.h"
 #include "PNEFactory.h"
 #include "ExpressionTree.h"
-#include "../TRH/TRH.h"
 
 #include "../RPGBuilder.h"
 #include "../temporalanalysis.h"

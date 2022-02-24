@@ -20,19 +20,11 @@ namespace hRelax {
 class HRelax {
 
 private:
-	static HRelax * INSTANCE;
 	static const char TIL_STRING_DELIM;
 
-	//Singleton
-	HRelax() {
-	}
-	;
-	HRelax(HRelax const & other) {
-	}
-	;
-	HRelax& operator=(HRelax const&) {
-	}
-	;
+	bool earlyTermination;
+	int heuristicMode;
+
 	void executePlan(std::list<Planner::FFEvent> & plan, 
 		stn::ColinSTNImpl & stn, Planner::FFEvent * initialEvent);
 	double getHeuristicValue(map<const Util::triple<const Planner::FFEvent *, double> *,
@@ -54,8 +46,18 @@ public:
 	const static double PROBLEM_UNSOLVABLE_H_VALUE;
 	const static string H_PLAN_DELIM_START;
 	const static string H_PLAN_DELIM_STOP;
-	static HRelax * getInstance();
-	pair<double, list<Planner::FFEvent> > getHeuristic(std::list<Planner::FFEvent> & plan);
+	
+	HRelax() : earlyTermination(true), heuristicMode(0) {
+	};
+
+	HRelax(bool earlyTermination, int heuristicMode) 
+		: earlyTermination(earlyTermination), heuristicMode(heuristicMode) {
+	};
+
+	pair<double, list<Planner::FFEvent> > getHeuristic(
+		std::list<Planner::FFEvent> & plan,
+		int relaxedplanLength);
+
 };
 
 }

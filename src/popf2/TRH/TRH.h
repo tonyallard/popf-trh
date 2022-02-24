@@ -17,6 +17,7 @@
 #include "../FFEvent.h"
 #include "../util/Util.h"
 #include "../lpscheduler.h"
+#include "../hRelax/HRelax.h"
 
 using namespace std;
 
@@ -32,22 +33,21 @@ private:
 	static const string TEMP_STATE_PATH;
 	static TRH * INSTANCE;
 
+	hRelax::HRelax relaxationHeuristic;
+
 	/*Used to ensure unique state files per instance*/
-	const int trhInstanceID;
-	const string hCommand;
+	int trhInstanceID;
+	string hCommand;
 	string stateFileName;
 
 	static int generateNewInstanceID();
 	//Singleton
 	TRH();
-	TRH(TRH const & other):trhInstanceID(other.trhInstanceID), 
-										hCommand(other.hCommand), 
-										stateFileName(other.stateFileName){
+	TRH(TRH const & other){
 
 	}
 	;
 	TRH operator=(TRH const& other) {
-		return TRH(other);
 	}
 	;
 
@@ -82,6 +82,8 @@ public:
     static int CURRENT_RELAXED_PLAN_LENGTH;
     static int initialState_HeuristicStateEvals;
     static double initialState_HeuristicCompTime;
+	static bool EARLY_TERMINATION;
+	static int HEURISTIC_MODE;
 	
 	pair<double, int> getHeuristic(Planner::ExtendedMinimalState & theState,
 		std::list<Planner::FFEvent>& plan, std::list<Planner::FFEvent> & now,

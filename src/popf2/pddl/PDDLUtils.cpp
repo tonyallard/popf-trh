@@ -20,7 +20,6 @@
 #include "TILFactory.h"
 
 #include "../globals.h"
-#include "../RPGBuilder.h"
 #include "../util/Util.h"
 #include "../../VALfiles/TimSupport.h"
 
