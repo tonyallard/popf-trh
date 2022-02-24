@@ -29,6 +29,7 @@ namespace PDDL {
 
 const string PDDLDomainFactory::TIL_ACHIEVED_PROPOSITION = "til-achieved";
 const string PDDLDomainFactory::REQUIRED_PROPOSITION = "required";
+const string PDDLDomainFactory::END_ACTION_POSTFIX = "_end";
 
 PDDLDomainFactory * PDDLDomainFactory::INSTANCE = NULL;
 
@@ -479,7 +480,7 @@ std::list<PDDL::PendingAction> PDDLDomainFactory::getPendingActions(
 
 		Inst::instantiatedOp* action = Planner::RPGBuilder::getInstantiatedOp(
 			saItr->first);
-		std::string name = PDDL::getOperatorName(action);
+		std::string name = PDDL::getOperatorName(action) + END_ACTION_POSTFIX;
 		std::set<PDDLObject> parameters;
 
 		//For each action get its conditions

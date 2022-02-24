@@ -26,6 +26,7 @@ private:
 	//constants
 	static const std::string REQUIRED_PROPOSITION;
 	static const std::string TIL_ACHIEVED_PROPOSITION;
+	static const std::string END_ACTION_POSTFIX;
 	
 	//Private constructor
 	PDDLDomainFactory(const VAL::domain * domain);
