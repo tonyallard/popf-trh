@@ -76,6 +76,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 		double> relaxHist;
 
 	int itrs = 0;
+	double accumulative_relax = 0.0;
 	while (!consistent) {
 		++itrs;
 		// cout << "Relaxation Iteration " << itrs << endl;
@@ -113,6 +114,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 			if (relaxHist.find(relaxation.first) == relaxHist.end()) {
 				relaxHist[relaxation.first] = relaxation.first->second;
 			}
+			accumulative_relax += abs(relaxation.first->second - relaxation.second);
 			//Get the delta reqiured to make STN consistent
 			stn.updateEdgeWeight(relaxation.first->first, relaxation.first->third,
 					relaxation.second);
@@ -121,6 +123,10 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 		// cout << "Is STN consistent yet? " << (consistent ? "yes" : "no")
 		// 	<< std::endl;
 	}
+	double total_final_relax = 0.0;
+	for (auto edge_update : relaxHist) {
+		total_final_relax += abs(edge_update.second - edge_update.first->second);
+	}
 	//If we get here the STN should be consistent
 	consistent = stn.isConsistent(initialEvent);
 	if (!consistent) {
@@ -128,9 +134,25 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 		assert(false);
 	}
 
-
 	//Sum relaxations to calculate h-val
-	double heuristic = heuristicMode ? itrs : getHeuristicValue(relaxHist);
+	double heuristic;
+	switch(heuristicMode) {
+	case 0:
+		heuristic = getHeuristicValue(relaxHist);
+		break;
+	case 1:
+		heuristic = itrs;
+		break;
+	case 2:
+		heuristic = total_final_relax;
+		break;
+	case 3:
+		heuristic = accumulative_relax;
+		break;
+	default:
+		cerr << "Error: Invalid heuristic mode selected (" << heuristicMode << ")." << endl;
+		assert(false);
+	}
 	delete initialEvent;
 	return pair<double, list<Planner::FFEvent> >(heuristic, plan);
 }

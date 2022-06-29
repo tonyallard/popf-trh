@@ -359,6 +359,15 @@ int main(int argc, char * argv[])
                 TRH::TRH::HEURISTIC_MODE = 1;
                 break;
             }
+            case '6': { //Use total final relaxtion instead of minimum relaxation
+                TRH::TRH::HEURISTIC_MODE = 2;
+                break;
+            }
+            case '7': { //Use total accumlative relaxtion instead of minimum relaxation
+                TRH::TRH::HEURISTIC_MODE = 3;
+                break;
+            }
+
             #ifdef POPF3ANALYSIS
             case 'n': {
                 Globals::optimiseSolutionQuality = true;

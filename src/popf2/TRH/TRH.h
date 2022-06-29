@@ -83,6 +83,13 @@ public:
     static int initialState_HeuristicStateEvals;
     static double initialState_HeuristicCompTime;
 	static bool EARLY_TERMINATION;
+	/*
+	 * HEURISTIC MODE
+	 * 0 - minimal relaxation
+	 * 1 - numer of relaxtion iterations
+	 * 2 - total final relaxation
+	 * 3 - accumulative relaxation
+	 */
 	static int HEURISTIC_MODE;
 	
 	pair<double, int> getHeuristic(Planner::ExtendedMinimalState & theState,
