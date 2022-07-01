@@ -77,6 +77,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 
 	int itrs = 0;
 	double accumulative_relax = 0.0;
+	int total_edges_in_conflict = 0;
 	while (!consistent) {
 		++itrs;
 		// cout << "Relaxation Iteration " << itrs << endl;
@@ -86,7 +87,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 		std::set<const Util::triple<const Planner::FFEvent *, double> *> conflictedConstraints =
 			itc->checkTemporalConsistencySPFA(&stn, initialEvent);
 			// itc->checkTemporalConsistencyFW(&stn);
-
+		total_edges_in_conflict += conflictedConstraints.size();
 		// cout << "Found " << conflictedConstraints.size()
 		//	<< " conflicted constraints" << std::endl;
 
@@ -123,10 +124,6 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 		// cout << "Is STN consistent yet? " << (consistent ? "yes" : "no")
 		// 	<< std::endl;
 	}
-	double total_final_relax = 0.0;
-	for (auto edge_update : relaxHist) {
-		total_final_relax += abs(edge_update.second - edge_update.first->second);
-	}
 	//If we get here the STN should be consistent
 	consistent = stn.isConsistent(initialEvent);
 	if (!consistent) {
@@ -144,7 +141,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 		heuristic = itrs;
 		break;
 	case 2:
-		heuristic = total_final_relax;
+		heuristic = total_edges_in_conflict;
 		break;
 	case 3:
 		heuristic = accumulative_relax;
