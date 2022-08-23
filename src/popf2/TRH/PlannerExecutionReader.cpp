@@ -112,6 +112,9 @@ list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(
 	list<Planner::FFEvent>::const_iterator planItr = plan.begin();
 	for (; planItr != plan.end(); planItr++) {
 		// cout << PDDL::getActionName(&(*planItr)) << endl;
+		if (planItr->time_spec == VAL::time_spec::E_AT) {
+			continue; //don't include TILs
+		}
 		Planner::ActionSegment act(planItr->action, planItr->time_spec, 
 			state.nextTIL, Planner::RPGHeuristic::emptyIntList);
 		if (Planner::RPGBuilder::getHeuristic()->testApplicability(state, timeStamp, act, false, false)) {
@@ -125,6 +128,8 @@ list<Planner::ActionSegment> PlannerExecutionReader::getHelpfulActions(
 list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planStr, 
 	const std::list<PDDL::TIL> & tils) {
 	list<Planner::FFEvent> rPlan;
+
+	std::set<BacklogItem> backlog;
 	list<string>::const_iterator planStrItr = planStr.begin();
 	for (; planStrItr != planStr.end(); planStrItr++) {
 		string actionStr = *planStrItr;
@@ -137,6 +142,18 @@ list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planS
 		
 		int startTimePos = actionStr.find(":");
 		double startTime = stod(actionStr.substr(0, startTimePos));
+		//Check if any of the backlog needs to go first
+		std::set<BacklogItem>::iterator backlogItr = backlog.begin();
+		for (; backlogItr != backlog.end();) {
+			if (backlogItr->startTime <= startTime) {
+				backlogItr->start->pairWithStep = rPlan.size();
+				rPlan.push_back(backlogItr->end);
+				backlogItr = backlog.erase(backlogItr);
+				relaxedPlanLength++;
+			} else {
+				backlogItr++;
+			}
+		}
 
 		int actionDurationStartPos = actionStr.find("[") + 1;
 		int actionDurationEndPos = actionStr.find("]");
@@ -156,16 +173,21 @@ list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planS
 				end_snap_action_defined = true;
 				double durActEndStart = startTime + duration;
 				end_snap_action = Planner::FFEvent(op, 
-					rPlan.size() - 1, durActEndStart, durActEndStart);
+					rPlan.size(), durActEndStart, durActEndStart);
 				end_snap_action.lpTimestamp = durActEndStart;
-				end_snap_action.pairWithStep = rPlan.size();
-				start_snap_action.pairWithStep = end_snap_action.pairWithStep + 1;
 			}
+			//Insert the start action
 			rPlan.push_back(start_snap_action);
 			relaxedPlanLength++;
+
+			//Make arrangements for the end snap action
 			if (end_snap_action_defined) {
-				rPlan.push_back(end_snap_action);
-				relaxedPlanLength++;
+				//Add to a backlog that we can insert later
+				BacklogItem newBacklogItem (
+					&rPlan.back(), //pointer to the start action in the plan list
+					end_snap_action, 
+					end_snap_action.lpTimestamp);
+				backlog.insert(newBacklogItem);
 			}
 		} else { //Check if it is a TIL
 			std::list<PDDL::TIL>::const_iterator tilItr = tils.begin();
@@ -190,6 +212,12 @@ list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planS
 				// cout << actionStr << " not Found." << endl;
 			}
 		}	
+	}
+	//Add the remaining of the backlog
+	for (auto backlogItem : backlog) {
+		backlogItem.start->pairWithStep = rPlan.size();
+		rPlan.push_back(backlogItem.end);
+		relaxedPlanLength++;
 	}
 	return rPlan;
 }

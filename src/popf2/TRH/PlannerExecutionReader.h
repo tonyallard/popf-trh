@@ -21,6 +21,25 @@
 using namespace std;
 
 namespace TRH {
+
+struct BacklogItem {
+       
+	double startTime;
+	Planner::FFEvent * start;
+	Planner::FFEvent end;
+	
+	BacklogItem(Planner::FFEvent * start, Planner::FFEvent & end, double startTime) :
+	start(start), end(end), startTime(startTime){
+
+	}
+
+	friend bool operator<(const BacklogItem& l, const BacklogItem& r)
+	{
+		return std::tie(l.startTime)
+			< std::tie(r.startTime); // keep the same order
+	}
+};
+
 class PlannerExecutionReader {
 private:
 	static const string H_VAL_DELIM;
