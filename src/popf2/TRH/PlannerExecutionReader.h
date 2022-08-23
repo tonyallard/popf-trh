@@ -18,6 +18,8 @@
 #include "../util/Util.h"
 #include "../lpscheduler.h"
 
+#include "PDDLUtils.h"
+
 using namespace std;
 
 namespace TRH {
@@ -37,6 +39,13 @@ struct BacklogItem {
 	{
 		return std::tie(l.startTime)
 			< std::tie(r.startTime); // keep the same order
+	}
+
+	friend ostream & operator<<(ostream & o, const BacklogItem & backlogitem) {
+		o << PDDL::getActionName(backlogitem.start)
+			<< "--[" << backlogitem.startTime << "]--"
+			<< PDDL::getActionName(&backlogitem.end);
+		return o; 
 	}
 };
 

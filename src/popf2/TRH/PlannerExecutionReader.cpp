@@ -129,7 +129,7 @@ list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planS
 	const std::list<PDDL::TIL> & tils) {
 	list<Planner::FFEvent> rPlan;
 
-	std::set<BacklogItem> backlog;
+	std::list<BacklogItem> backlog;
 	list<string>::const_iterator planStrItr = planStr.begin();
 	for (; planStrItr != planStr.end(); planStrItr++) {
 		string actionStr = *planStrItr;
@@ -143,9 +143,9 @@ list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planS
 		int startTimePos = actionStr.find(":");
 		double startTime = stod(actionStr.substr(0, startTimePos));
 		//Check if any of the backlog needs to go first
-		std::set<BacklogItem>::iterator backlogItr = backlog.begin();
-		for (; backlogItr != backlog.end();) {
-			if (backlogItr->startTime <= startTime) {
+		std::list<BacklogItem>::iterator backlogItr = backlog.begin();
+		while(backlogItr != backlog.end()) {
+			if (backlogItr->startTime <= startTime + EPSILON) {
 				backlogItr->start->pairWithStep = rPlan.size();
 				rPlan.push_back(backlogItr->end);
 				backlogItr = backlog.erase(backlogItr);
@@ -187,7 +187,7 @@ list<Planner::FFEvent> PlannerExecutionReader::getRelaxedPlan(list<string> planS
 					&rPlan.back(), //pointer to the start action in the plan list
 					end_snap_action, 
 					end_snap_action.lpTimestamp);
-				backlog.insert(newBacklogItem);
+				backlog.push_back(newBacklogItem);
 			}
 		} else { //Check if it is a TIL
 			std::list<PDDL::TIL>::const_iterator tilItr = tils.begin();
