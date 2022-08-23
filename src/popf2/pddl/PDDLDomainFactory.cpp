@@ -575,7 +575,7 @@ std::list<PDDL::PendingAction> PDDLDomainFactory::getPendingActions(
 
 			std::pair<VAL::time_spec, bool> required(VAL::time_spec::E_AT_START,
 					true);
-			VAL::time_spec notRequiredTimeSpec = VAL::time_spec::E_AT_END;
+			VAL::time_spec notRequiredTimeSpec = VAL::time_spec::E_AT_START;
 
 			pair<PDDL::Proposition, std::pair<VAL::time_spec, bool> > requiredCondition(
 					*reqObjItr, required);
