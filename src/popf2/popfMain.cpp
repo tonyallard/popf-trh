@@ -472,6 +472,7 @@ int main(int argc, char * argv[])
                 cout << "#; Heuristic States Evaluated: " << TRH::TRH::STATES_EVALUATED_IN_HEURISTIC << endl;
                 cout << "#; Time spent converting PDDL state: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_CONVERTING_PDDL_STATE << "s." << endl;
                 cout << "#; Time spent printing state to file: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_PRINTING_TO_FILE << "s." << endl;
+                cout << "#; Time spent in subplanner: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_SUBPLANNER << "s." << endl;
                 cout << "#; Time spent in heuristic: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_HEURISTIC << "s." << endl;
                 cout << "#; Termination Depth: " << TRH::TRH::CURRENT_SEARCH_DEPTH << endl;
                 cout << "#; Relaxed Plan Length: " << TRH::TRH::CURRENT_RELAXED_PLAN_LENGTH << endl;
@@ -501,6 +502,7 @@ int main(int argc, char * argv[])
         cout << "#; Heuristic States Evaluated: " << TRH::TRH::STATES_EVALUATED_IN_HEURISTIC << endl;
         cout << "#; Time spent converting PDDL state: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_CONVERTING_PDDL_STATE << "s." << endl;
         cout << "#; Time spent printing state to file: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_PRINTING_TO_FILE << "s." << endl;
+        cout << "#; Time spent in subplanner: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_SUBPLANNER << "s." << endl;
         cout << "#; Time spent in heuristic: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_HEURISTIC << "s." << endl;
         cout << "#; EHC Performance Histogram: " << FF::EHC_PERFORMANCE_HISTOGRAM.size() << endl;
         map<int, int>::iterator ehcPerfItr = FF::EHC_PERFORMANCE_HISTOGRAM.begin();

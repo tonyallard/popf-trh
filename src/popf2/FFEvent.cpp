@@ -9,6 +9,7 @@
 #include <limits>
 #include <sstream>
 #include <iostream>
+#include <iomanip>
 
 using std::ostringstream;
 using std::endl;

@@ -33,6 +33,7 @@ const string TRH::TEMP_DOMAIN_SUFFIX = "-domain";
 const string TRH::TEMP_FILE_EXT = ".pddl";
 
 double TRH::TIME_SPENT_IN_HEURISTIC = 0.0;
+double TRH::TIME_SPENT_IN_SUBPLANNER = 0.0;
 double TRH::TIME_SPENT_IN_PRINTING_TO_FILE = 0.0;
 double TRH::TIME_SPENT_CONVERTING_PDDL_STATE = 0.0;
 int TRH::STATES_EVALUATED_IN_HEURISTIC = 0;
@@ -81,6 +82,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 		writeStateToFile(state, header, theState.timeStamp, heuristic, pddlFactory, stateFileName);
 
 	Planner::FF::STATES_EVALUATED++;
+	clock_t begin_time = clock();
 	string result = runPlanner();
 	
 	//Read in the results of the relaxed plan
@@ -90,7 +92,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	if ((Planner::Globals::globalVerbosity & 1) && (initialState_HeuristicStateEvals < 0)) {
 		//Record details of initial state
     	TRH::initialState_HeuristicStateEvals = TRH::STATES_EVALUATED_IN_HEURISTIC;
-    	TRH::initialState_HeuristicCompTime = TRH::TRH::TIME_SPENT_IN_HEURISTIC;
+    	TRH::initialState_HeuristicCompTime = TRH::TRH::TIME_SPENT_IN_SUBPLANNER;
         cout << "#; Initial State - time spent in heuristic: " << std::setprecision(9) 
         	<< TRH::initialState_HeuristicCompTime << "s." << endl;
         cout << "#; Initial State - heuristic states evaluated: " 
@@ -101,6 +103,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
     }
 
 	if (!reader.isSolutionFound()) {
+		TRH::TRH::TIME_SPENT_IN_HEURISTIC += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
 		return std::make_pair (-1.0,  -1);
 	}
 
@@ -130,6 +133,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	double hVal_double = (int)round((hVal.first * 1000));
 	// cout << "hVal_double: " << hVal_double << endl;
 	// cout << "Relaxed Plan Len::" << reader.getRelaxedPlanLength() << endl;
+	TRH::TRH::TIME_SPENT_IN_HEURISTIC += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
 	return std::make_pair (hVal_double, reader.getRelaxedPlanLength());
 }
 
@@ -177,7 +181,7 @@ string TRH::runPlanner() {
 			result += buffer;
 	}
 
-	TRH::TRH::TIME_SPENT_IN_HEURISTIC += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
+	TRH::TRH::TIME_SPENT_IN_SUBPLANNER += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
 	removeTempState(stateFileName);
 	return result;
 }

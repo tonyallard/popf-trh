@@ -75,6 +75,7 @@ private:
 public:
 	static TRH * getInstance();
 	static double TIME_SPENT_IN_HEURISTIC;
+	static double TIME_SPENT_IN_SUBPLANNER;
 	static double TIME_SPENT_IN_PRINTING_TO_FILE;
 	static double TIME_SPENT_CONVERTING_PDDL_STATE;
     static int STATES_EVALUATED_IN_HEURISTIC;
