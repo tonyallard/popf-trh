@@ -93,7 +93,7 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 		//Record details of initial state
     	TRH::initialState_HeuristicStateEvals = TRH::STATES_EVALUATED_IN_HEURISTIC;
     	TRH::initialState_HeuristicCompTime = TRH::TRH::TIME_SPENT_IN_SUBPLANNER;
-        cout << "#; Initial State - time spent in heuristic: " << std::setprecision(9) 
+        cout << "#; Initial State - time spent in sub-planner: " << std::setprecision(9) 
         	<< TRH::initialState_HeuristicCompTime << "s." << endl;
         cout << "#; Initial State - heuristic states evaluated: " 
         	<< TRH::initialState_HeuristicStateEvals << endl;
@@ -138,11 +138,11 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 }
 
 void TRH::addRelaxedPlan(list<Planner::FFEvent> & proposedPlan, list<Planner::FFEvent> & relaxedPlan) {
-	list<Planner::FFEvent>::iterator rPlanItr = relaxedPlan.begin();
-	
+		
 	//Original position -> pair <event, newPosition>
 	map<int, std::pair<Planner::FFEvent *, int> > pairedWithStepMap;
 
+	list<Planner::FFEvent>::iterator rPlanItr = relaxedPlan.begin();
 	for (int i = 0; rPlanItr != relaxedPlan.end(); rPlanItr++, i++) {
 		Planner::FFEvent event = *rPlanItr;
 		if (event.pairWithStep >= 0) {
