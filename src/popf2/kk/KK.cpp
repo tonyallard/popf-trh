@@ -22,80 +22,98 @@ KK * KK::getInstance() {
 	return INSTANCE;
 }
 
-std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > KK::getOrderingConstratints(
-		const std::list<Planner::FFEvent> & plan, const Planner::FFEvent * initialAction) {
+bool KK::getOrderingConstratints(
+	std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > & actionOrderings,
+	const std::list<Planner::FFEvent> & plan, 
+	const Planner::FFEvent * initialAction) {
+
 	//Build a validation structure for the plan
-	std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > validationStructure =
-			getActionValidationStructure(plan, initialAction);
+	std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > validationStructure;
+	bool success = getActionValidationStructure(validationStructure, plan, initialAction);
+	if (!success) {
+		return false;
+	}
 	// printValidationStructure(validationStructure);
 
-	std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > actionOrderings;
 	//Construct generalised ordering
-	std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> >::const_iterator vItr =
-			validationStructure.begin();
-	const std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> >::const_iterator vItrEnd =
-			validationStructure.end();
-	for (int i = 0; vItr != vItrEnd; vItr++, i++) {
-		Util::triple<const Planner::FFEvent *, PDDL::Literal> causalLink = *vItr;
-		// Add causal link ordering
-		pair<const Planner::FFEvent *, const Planner::FFEvent *> actionOrdering(
-				causalLink.first, causalLink.third);
-		actionOrderings.insert(actionOrdering);
-		// Add ordering for all threatening actions
-		std::set<const Planner::FFEvent *> threatingActions =
-				findAllThreateningActions(&causalLink, plan);
-		std::set<const Planner::FFEvent *>::const_iterator taItr =
-				threatingActions.begin();
-		const std::set<const Planner::FFEvent *>::const_iterator taItrEnd =
-				threatingActions.end();
-		for (; taItr != taItrEnd; taItr++) {
-			const Planner::FFEvent * threateningAction = *taItr;
-			//Add unique ordering for before first action and after second
-			pair<const Planner::FFEvent *, const Planner::FFEvent *> threatOrderingBefore(
-					threateningAction, causalLink.first);
-			pair<const Planner::FFEvent *, const Planner::FFEvent *> threatOrderingAfter(
-					causalLink.third, threateningAction);
-			//If threatening action is before the first action in the casual chain
-			//add an ordering to explicitly state that requirement
-			if ((PDDL::isBefore(threateningAction, causalLink.first, plan)) &&
-				(causalLink.first != initialAction)) {
-				actionOrderings.insert(threatOrderingBefore);
-			}
-			//If the threatening action is after the second action in the causal chain
-			//add an ordering to explicitly state that requirement
-			if (PDDL::isAfter(threateningAction, causalLink.third, plan)) {
-				actionOrderings.insert(threatOrderingAfter);
+	list<Planner::FFEvent>::const_iterator eventItr = plan.begin();
+	const list<Planner::FFEvent>::const_iterator eventItrEnd = plan.end();
+	const list<Planner::FFEvent>::const_iterator lastEventItr = std::prev(plan.end());
+	for (; eventItr != lastEventItr; eventItr++) {
+		//list<Planner::FFEvent>::const_iterator nextEventItr = plan.begin();
+		list<Planner::FFEvent>::const_iterator nextEventItr = std::next(eventItr, 1); //advance to the next action
+		const Planner::FFEvent * event = &(*eventItr); // a
+		pair<const Planner::FFEvent *, const Planner::FFEvent *> initialOrdering(
+			initialAction, event);
+		actionOrderings.insert(initialOrdering);
+		for (; nextEventItr != eventItrEnd; nextEventItr++) {
+			const Planner::FFEvent * nextEvent = &(*nextEventItr); // b
+			pair<const Planner::FFEvent *, const Planner::FFEvent *> actionOrdering(
+				event, nextEvent);
+			if (supportExists(event, nextEvent, validationStructure)) { // a supports b
+				actionOrderings.insert(actionOrdering);
+			} else if (threatExists(nextEvent, event, validationStructure, false)) { //b threatens c support a
+				actionOrderings.insert(actionOrdering);
+			} else if (threatExists(event, nextEvent, validationStructure, true)) { //a threatens b support c
+				actionOrderings.insert(actionOrdering);
 			}
 		}
 	}
-	// printActionOrderings(actionOrderings);
-	return actionOrderings;
+	//Add initial ordering for last event if there is a plan 
+	if (plan.size()) {
+		pair<const Planner::FFEvent *, const Planner::FFEvent *> initialOrdering(
+			initialAction, &*plan.rbegin());
+		actionOrderings.insert(initialOrdering);
+	}
+	//printActionOrderings(actionOrderings);
+	return true;
 }
 
-/**
- * Finds all actions that could remove support for the condition in the causal link
- */
-std::set<const Planner::FFEvent *> KK::findAllThreateningActions(
-		Util::triple<const Planner::FFEvent *, PDDL::Literal> * causalLink,
-		const std::list<Planner::FFEvent> & plan) {
-	std::set<const Planner::FFEvent *> threateningActions;
-	std::list<Planner::FFEvent>::const_iterator eventItr = plan.begin();
-	const std::list<Planner::FFEvent>::const_iterator eventItrEnd = plan.end();
-	for (; eventItr != eventItrEnd; eventItr++) {
-		const Planner::FFEvent * event = &(*eventItr);
-		if ((event != causalLink->first) && (event != causalLink->third)) {
-			if ((event->time_spec != VAL::time_spec::E_AT)
-					&& ((event->action == causalLink->first->action)
-					|| (event->action == causalLink->third->action))) {
-				continue;
+bool KK::supportExists(
+	const Planner::FFEvent * producer, 
+	const Planner::FFEvent * consumer,
+	const std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > & validationStructure) {
+
+	std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> >::const_iterator vItr =
+		validationStructure.begin();
+	const std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> >::const_iterator vItrEnd =
+		validationStructure.end();
+
+	for (;vItr != vItrEnd; vItr++) {
+		Util::triple<const Planner::FFEvent *, PDDL::Literal> causalLink = *vItr;
+		if ((causalLink.first == producer) && (causalLink.third == consumer)) {
+			return true;
+		}
+	}
+	return false;
+ }
+
+bool KK::threatExists(
+	const Planner::FFEvent * threat, 
+	const Planner::FFEvent * event,
+	const std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > & validationStructure,
+	bool eventIsProducer) {
+	
+	std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> >::const_iterator vItr =
+		validationStructure.begin();
+	const std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> >::const_iterator vItrEnd =
+		validationStructure.end();
+
+	for (; vItr != vItrEnd; vItr++) {
+		Util::triple<const Planner::FFEvent *, PDDL::Literal> causalLink = *vItr;
+
+		if ((eventIsProducer) && (causalLink.first == event)) {
+			if (KK::doesEventThreatenCausalLink(threat, &causalLink.second)) {
+				return true;
 			}
-			if (KK::doesEventThreatenCausalLink(event, &causalLink->second)) {
-				threateningActions.insert(event);
+		} else if ((!eventIsProducer) && (causalLink.third == event)) {
+			if (KK::doesEventThreatenCausalLink(threat, &causalLink.second)) {
+				return true;
 			}
 		}
 	}
-	return threateningActions;
-}
+	return false;
+ }
 
 /**
  * Checks if event could remove the support of the condition
@@ -116,11 +134,11 @@ bool KK::doesEventThreatenCausalLink(const Planner::FFEvent * event,
  * For each action finds the minimum action which supports each of its preconditions
  * and generates a validation structure that identifies these dependencies
  */
-std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > KK::getActionValidationStructure(
-		const std::list<Planner::FFEvent> & plan, const Planner::FFEvent * initialAction) {
+bool KK::getActionValidationStructure(
+	std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > & validationStructure,
+	const std::list<Planner::FFEvent> & plan, 
+	const Planner::FFEvent * initialAction) {
 
-	std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > validationStructure;
-	
 	//Cycle through events in the plan
 	list<Planner::FFEvent>::const_iterator eventItr = plan.begin();
 	const list<Planner::FFEvent>::const_iterator eventItrEnd = plan.end();
@@ -145,11 +163,13 @@ std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > KK::getActionVa
 				conditions.end();
 		for (; condItr != condItrEnd; condItr++) {
 			const Planner::FFEvent * support = findMinimumSupportingAction(
-					&(*condItr), i, plan);
+					&(*condItr), i, plan, initialAction);
 			if (!support) {
-				//if null it must be in the initial state
-				//Make minimum supporting action our initial action
-				support = initialAction;
+				//If there is no support then this is a fail
+				// cerr << "There was no support for " 
+				//      << *condItr << "condition in action " 
+				//      << PDDL::getActionName(event) << endl;
+				return false;
 			}
 			//Add the ordering constraint
 			Util::triple<const Planner::FFEvent *, PDDL::Literal> ordering;
@@ -158,7 +178,7 @@ std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > KK::getActionVa
 		}
 	}
 	// printValidationStructure(validationStructure);
-	return validationStructure;
+	return true;
 }
 
 /**
@@ -168,34 +188,46 @@ std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > KK::getActionVa
  * support for the precondition
  */
 const Planner::FFEvent * KK::findMinimumSupportingAction(
-		const PDDL::Literal * condition, int indexOfEvent,
-		const std::list<Planner::FFEvent> & plan) {
+	const PDDL::Literal * condition, 
+	int indexOfEvent,
+	const std::list<Planner::FFEvent> & plan,
+	const Planner::FFEvent * initialAction) {
+
 
 	list<Planner::FFEvent>::const_reverse_iterator eventItr = plan.rbegin();
 
+	const Planner::FFEvent * support = NULL;
 	//Advance to where the event is
 	std::advance(eventItr, plan.size() - indexOfEvent - 1);
 	eventItr++; //begin with immediately preceeding event
-	const Planner::FFEvent * currentSupportingEvent = 0;
 	for (; eventItr != plan.rend(); eventItr++) {
 		const Planner::FFEvent * event = &(*eventItr);
 		
-		//Check if the event removes support for the condition
-		std::list<PDDL::Proposition> effects = PDDL::getActionEffects(
-				event, !condition->isPositive());
+		//Check if the event adds support for the condition
+		std::list<PDDL::Proposition> effects = 
+			PDDL::getActionEffects(event, condition->isPositive());
 		if (PDDL::supported(condition->getProposition(), &effects)) {
-			//If it is return previous suporter
-			return currentSupportingEvent;
+			support = event;
+			//break;
 		}
 
-		//get effects
-		effects = PDDL::getActionEffects(event, condition->isPositive());
-		//check if effects support this
+		//Check if the event removes support for the condition
+		effects = PDDL::getActionEffects(
+			event, !condition->isPositive());
 		if (PDDL::supported(condition->getProposition(), &effects)) {
-			currentSupportingEvent = event;
+			//If it does, then we have a problem
+			return support;
 		}
 	}
-	return currentSupportingEvent;
+	//Check if support is in the initial state
+	if (support == NULL) {
+		std::list<PDDL::Proposition> effects = 
+			PDDL::getActionEffects(initialAction, condition->isPositive());
+		if (PDDL::supported(condition->getProposition(), &effects)) {
+			return initialAction;
+		}
+	}
+	return support;
 }
 
 void KK::printValidationStructure(
@@ -213,9 +245,9 @@ void KK::printValidationStructure(
 
 void KK::printCausalLink(
 		Util::triple<const Planner::FFEvent *, PDDL::Literal> & causalLink) {
-	cout << PDDL::getActionName(causalLink.first) << "-" << causalLink.first->time_spec
+	cout << PDDL::getActionName(causalLink.first)
 			<< " supports " << causalLink.second << " for "
-			<< PDDL::getActionName(causalLink.third) << "-" << causalLink.third->time_spec
+			<< PDDL::getActionName(causalLink.third)
 			<< std::endl;
 }
 
@@ -237,10 +269,8 @@ void KK::printActionOrderings(
 void KK::printActionOrdering(
 		std::pair<const Planner::FFEvent *, const Planner::FFEvent *> & ordering) {
 	cout << PDDL::getActionName(ordering.first)
-			<< "-" << ordering.first->time_spec
 			<< " ordered before "
 			<< PDDL::getActionName(ordering.second)
-			<< "-" << ordering.second->time_spec
 			<< std::endl;
 }
 

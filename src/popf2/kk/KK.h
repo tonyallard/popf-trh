@@ -32,28 +32,48 @@ private:
 	KK& operator=(KK const&) {
 		}
 		;
-	std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > getActionValidationStructure(
-			const std::list<Planner::FFEvent> & plan, const Planner::FFEvent * initialAction);
-	std::set<const Planner::FFEvent *> findAllThreateningActions(
-			Util::triple<const Planner::FFEvent *, PDDL::Literal> * causalLink, 
-			const std::list<Planner::FFEvent> & plan);
-	bool doesEventThreatenCausalLink(const Planner::FFEvent * event, PDDL::Literal * condition);
+	bool getActionValidationStructure(
+		std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > & validationStructure,
+		const std::list<Planner::FFEvent> & plan, 
+		const Planner::FFEvent * initialAction);
+
+	bool supportExists(
+		const Planner::FFEvent * producer, 
+		const Planner::FFEvent * consumer,
+		const std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > & validationStructure);
+
+	bool threatExists(
+		const Planner::FFEvent * threat, 
+		const Planner::FFEvent * event,
+		const std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > & validationStructure,
+		bool eventIsProducer);
+		
+	bool doesEventThreatenCausalLink(
+		const Planner::FFEvent * event, 
+		PDDL::Literal * condition);
+
 	const Planner::FFEvent * findMinimumSupportingAction(
-			const PDDL::Literal * condition, int indexOfEvent,
-			const std::list<Planner::FFEvent> & plan);
+		const PDDL::Literal * condition, 
+		int indexOfEvent,
+		const std::list<Planner::FFEvent> & plan,
+		const Planner::FFEvent * initialAction);
+
 	void printValidationStructure(
-			std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > & ordering);
+		std::set<Util::triple<const Planner::FFEvent *, PDDL::Literal> > & ordering);
 	void printCausalLink(
-			Util::triple<const Planner::FFEvent *, PDDL::Literal> & causalLink);
+		Util::triple<const Planner::FFEvent *, PDDL::Literal> & causalLink);
 	void printActionOrderings(
-			std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > & ordering);
+		std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > & ordering);
 	void printActionOrdering(
-			std::pair<const Planner::FFEvent *, const Planner::FFEvent *> & ordering);
+		std::pair<const Planner::FFEvent *, const Planner::FFEvent *> & ordering);
 
 public:
 	static KK * getInstance();
-	std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > getOrderingConstratints(
-		const std::list<Planner::FFEvent> & plan, const Planner::FFEvent * initialAction);
+	
+	bool getOrderingConstratints(
+		std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > & actionOrderings,
+		const std::list<Planner::FFEvent> & plan, 
+		const Planner::FFEvent * initialAction);
 
 };
 

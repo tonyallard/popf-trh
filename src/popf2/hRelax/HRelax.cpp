@@ -33,8 +33,13 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 
 	//Determine Plan De-Ordering
     ::KK::KK * deordAlg = ::KK::KK::getInstance();
-	std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > orderingConstraints =
-			deordAlg->getOrderingConstratints(plan, initialEvent);
+	std::set<std::pair<const Planner::FFEvent *, const Planner::FFEvent *> > orderingConstraints;
+	bool success = deordAlg->getOrderingConstratints(orderingConstraints, plan, initialEvent);
+	if (!success) {
+		//there were logical issues determining an ordering
+		cerr << "Ordering Fail" << endl;
+		assert(false);
+	}
 	// Generate STN
 	stn::ColinSTNImpl stn = stn::ColinSTNImpl::makeColinSTN(plan, 
 		orderingConstraints, initialEvent);
@@ -97,7 +102,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 		}
 
 		//Determine minimum required relaxations
-		//To make remove negative cycle
+		//To remove negative cycle
 		// cout << "Determining Relaxations..." << endl;
 		std::set<std::pair<const Util::triple<const Planner::FFEvent *, double> *,
 					double> > relaxations = tcr.determineTemporalRelaxations(
@@ -248,11 +253,9 @@ std::string HRelax::getRelaxationsString(std::set<
 std::string HRelax::getConstraintString(
 	const Util::triple<const Planner::FFEvent *, double> * constraint) {
 	ostringstream output;
-	output << PDDL::getActionName(constraint->first) << "-"
-			<< constraint->first->time_spec << "-" << constraint->first << "--["
-			<< constraint->second << "]--"
-			<< PDDL::getActionName(constraint->third)
-			<< "-" << constraint->third->time_spec << "-" << constraint->third;
+	output << PDDL::getActionName(constraint->first)
+		<< "--[" << constraint->second << "]--"
+		<< PDDL::getActionName(constraint->third);
 	return output.str();
 }
 
@@ -260,7 +263,12 @@ Planner::FFEvent * HRelax::createInitialEvent() {
 	VAL::operator_symbol * opSym = new VAL::operator_symbol(
 			"Dummy-Initial-Action");
 	VAL::var_symbol_list * vsl = new VAL::var_symbol_list();
-	VAL::operator_ * op = new VAL::operator_(opSym, vsl, 0, 0, 0);
+	VAL::operator_ * op = new VAL::operator_(
+		opSym, //OP Symbol
+		vsl, //Var_symbol_list
+		0, //Conditions
+		VAL::current_analysis->the_problem->initial_state, //Effects
+		0); //Var_sumbol_table
 	Inst::instantiatedOp * iop = new Inst::instantiatedOp(op, 0);
 	Planner::RPGBuilder::addInstantiatedOp(iop);
 	iop->setID(Inst::instantiatedOp::howMany());
