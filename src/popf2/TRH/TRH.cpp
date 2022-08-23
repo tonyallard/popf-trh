@@ -159,7 +159,6 @@ void TRH::addRelaxedPlan(list<Planner::FFEvent> & proposedPlan, list<Planner::FF
 		} else {
 			proposedPlan.push_back(event);
 		}
-		proposedPlan.push_back(event);
 	}
 }
 

@@ -125,27 +125,7 @@ string threeDP(double d)
 {
     ostringstream toReturn;
     
-    d *= 1000;
-    
-    int asInt = d;
-    
-    d -= asInt;
-    if (d >= 0.5) {
-        asInt += 1;
-    }
-    
-    int fractionalPart = asInt % 1000;
-    
-    toReturn << asInt / 1000 << ".";
-       
-    if (fractionalPart < 100) {
-        toReturn << "0";
-    }
-    if (fractionalPart < 10) {
-        toReturn << "0";
-    }
-    
-    toReturn << asInt % 1000;
+    toReturn << std::setprecision(3) << std::fixed << d;
     
     return toReturn.str();
 }

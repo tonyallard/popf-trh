@@ -354,12 +354,7 @@ std::ostream & operator<<(std::ostream & output,
 			colinSTN.edges.end();
 	for (; constItr != constItrEnd; constItr++) {
 		Util::triple<const Planner::FFEvent *, double> constraint = *constItr;
-		output << PDDL::getActionName(constraint.first)
-				<< "-" << constraint.first->time_spec
-				<< "--[" << constraint.second << "]-->"
-				<< PDDL::getActionName(constraint.third)
-				<< "-" << constraint.third->time_spec
-				<< std::endl;
+		output << constraint << std::endl;
 	}
 	return output;
 }
@@ -367,9 +362,8 @@ std::ostream & operator<<(std::ostream & output,
 std::ostream & operator<<(std::ostream & output,
 				const Util::triple<const Planner::FFEvent *, double> & edge) {
 	output << PDDL::getActionName(edge.first)
-		<< "-" << edge.first->time_spec
 		<< "--[" << edge.second << "]-->"
-		<< PDDL::getActionName(edge.third)
-		<< "-" << edge.third->time_spec;
+		<< PDDL::getActionName(edge.third);
+	return output;
 }
 }
