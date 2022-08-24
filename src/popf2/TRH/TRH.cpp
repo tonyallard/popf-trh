@@ -118,19 +118,12 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	// cout << hVal.first << endl;
 	// exit(0);
 	if (hVal.first == 0.0) {
-		// cout << "Executed Plan" << endl;
-		// Planner::FFEvent::printPlan(hVal.second);
 		//Record current search characteristics
 		CURRENT_SEARCH_DEPTH = header.size() + now.size();
 		CURRENT_RELAXED_PLAN_LENGTH = reader.getRelaxedPlan().size();
-		std::pair<Planner::MinimalState, list<Planner::FFEvent> > solution;
-			bool success = reprocessPlan(hVal.second, solution);
-			if (!success) {
-				TRH::TRH::TIME_SPENT_IN_HEURISTIC += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
-				return std::make_pair (-1.0, reader.getRelaxedPlanLength());
-			}
-		Planner::FF::workingBestSolution.update(solution.second, solution.first.temporalConstraints, 
-			Planner::FF::evaluateMetric(solution.first, list<Planner::FFEvent>(), false));
+		//Update solution
+		Planner::FF::workingBestSolution.update(hVal.second, 0, 
+			Planner::FF::evaluateMetric(theState.getInnerState(), list<Planner::FFEvent>(), false));
 	} else if (Planner::FF::helpfulActions) {
 		helpfulActions.insert(helpfulActions.end(), reader.getHelpfulActions().begin(), 
 			reader.getHelpfulActions().end());
@@ -320,7 +313,7 @@ bool TRH::reprocessPlan(list<Planner::FFEvent> & oldSoln, std::pair<Planner::Min
 		bool success = evaluateStateAndUpdatePlan(succ, nextSeg, *(succ->state()), currSQI->state(), incrementalData.get(), currSQI->plan);
 		if (!success) {
 			cerr << "Something went wrong replaying plan." << endl;
-			// cerr << "Failed applying: " << PDDL::getOperatorName(nextSeg.first) 
+			// cerr << "Failed applying: " << PDDL::getActionName(&nextSeg) 
 			//      << "-" << nextSeg.second << endl;
 			assert(false);
 			return false;

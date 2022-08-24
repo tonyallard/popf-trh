@@ -86,7 +86,7 @@ void Solution::update(const std::list< FFEvent >& newPlan, const Planner::Tempor
     if (newCons) {
         constraints = new TemporalConstraints(*newCons);
     } else {
-        assert(plan->empty());
+        // assert(plan->empty());
         constraints = new TemporalConstraints();
     }
     quality = newMetric;
