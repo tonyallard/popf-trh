@@ -74,7 +74,7 @@ pair<double, list<Planner::FFEvent> > HRelax::getHeuristic(
 	}
 	
 	//Determine the minimum relaxations required to make the STN consistent
-	TemporalConflictRelaxation tcr;
+	TemporalConflictRelaxation tcr(plan);
 	//Keep track of the original constraint weights 
 	//so we can determine the deltas
 	map<const Util::triple<const Planner::FFEvent *, double> *, 

@@ -23,6 +23,8 @@ namespace hRelax {
 class TemporalConflictRelaxation {
 
 private:
+	const std::list<Planner::FFEvent> & plan;
+
 	vector<Util::triple<pair<int,double>, double, double> > decisionVars;
 	vector<vector<pair<int,double> > > constraintRows;
 	set<const Util::triple<const Planner::FFEvent *, double> *> relaxableConstraints;
@@ -31,14 +33,6 @@ private:
 	//Static vars
 	static const double INF_UPPER_BOUND;
 	static const double UNITY_COEFFICIENT;
-
-	//Deny copying
-	TemporalConflictRelaxation(TemporalConflictRelaxation const & other) {
-	}
-	;
-	TemporalConflictRelaxation& operator=(TemporalConflictRelaxation const&) {
-	}
-	;
 
 	//Private functions
 	map<int, double> solve();
@@ -57,7 +51,7 @@ private:
 			const std::set<
 					const Util::triple<const Planner::FFEvent *, double> *> & tilConstraints);
 public:
-	TemporalConflictRelaxation(){};
+	TemporalConflictRelaxation(const std::list<Planner::FFEvent> & plan) : plan(plan){};
 	//Destructor
 	~TemporalConflictRelaxation() {
 	}

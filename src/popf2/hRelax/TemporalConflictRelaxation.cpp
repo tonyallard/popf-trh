@@ -129,7 +129,7 @@ void TemporalConflictRelaxation::addDecisionVarsToObjectiveFunction(
 
 		if (relaxableConstraints.find(conflict) != relaxableConstraints.end()) {
 			//This is relaxable create the appropriate bounds
-			decisionVar.make_triple(decisionVarCoeff, EPSILON, INF_UPPER_BOUND);
+			decisionVar.make_triple(decisionVarCoeff, conflict->second, INF_UPPER_BOUND);
 		
 		} else {
 			//The bounds should ensure this value does not change
@@ -209,17 +209,18 @@ void TemporalConflictRelaxation::addRelaxableConstraints(
 	for (; conflictItr != conflicts.end(); conflictItr++) {
 		const Util::triple<const Planner::FFEvent *, double> * conflict =
 				*conflictItr;
-		//If the edge is not a TIL constraint, it is not a duration constraint
-		//and it is not the link between a TIL and the next action
-		//then it is relaxable
-		// if ((tilConstraints.find(conflict) == tilConstraints.end()) //Ignore til constraints
-		// 		&& (conflict->first->action != conflict->third->action) //Ignore duration constraints
-		// 		&& (conflict->first->time_spec != VAL::time_spec::E_AT)) { //Ignore precedence between a TIL and the next action
-		// 	relaxableConstraints.insert(conflict);
-		// }
-		if ((conflict->first->action == conflict->third->action) &&
-			(conflict->third->pairWithStep - conflict->first->pairWithStep == 1)) {
-			relaxableConstraints.insert(conflict);
+		//If the edge is the duration between two snap-actions of the same durative
+		//action then it is relaxable.
+		if (conflict->first->action == conflict->third->action) {
+			std::list<Planner::FFEvent>::const_iterator startItr = plan.begin();
+			std::list<Planner::FFEvent>::const_iterator endItr = plan.begin();
+			std::advance(startItr, conflict->third->pairWithStep);
+			std::advance(endItr, conflict->first->pairWithStep);
+			if (((&*startItr) == conflict->first) && 
+				((&*endItr) == conflict->third)) {
+					relaxableConstraints.insert(conflict);
+			}
 		}
+
 	}
 }
