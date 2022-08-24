@@ -123,7 +123,12 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 		//Record current search characteristics
 		CURRENT_SEARCH_DEPTH = header.size() + now.size();
 		CURRENT_RELAXED_PLAN_LENGTH = reader.getRelaxedPlan().size();
-		std::pair<Planner::MinimalState, list<Planner::FFEvent> > solution = reprocessPlan(hVal.second);
+		std::pair<Planner::MinimalState, list<Planner::FFEvent> > solution;
+			bool success = reprocessPlan(hVal.second, solution);
+			if (!success) {
+				TRH::TRH::TIME_SPENT_IN_HEURISTIC += double( clock () - begin_time ) /  CLOCKS_PER_SEC;
+				return std::make_pair (-1.0, reader.getRelaxedPlanLength());
+			}
 		Planner::FF::workingBestSolution.update(solution.second, solution.first.temporalConstraints, 
 			Planner::FF::evaluateMetric(solution.first, list<Planner::FFEvent>(), false));
 	} else if (Planner::FF::helpfulActions) {
@@ -196,7 +201,7 @@ string TRH::buildCommand() {
 	return cmd.str();
 }
 
-std::pair<Planner::MinimalState, list<Planner::FFEvent> > TRH::reprocessPlan(list<Planner::FFEvent> & oldSoln)
+bool TRH::reprocessPlan(list<Planner::FFEvent> & oldSoln, std::pair<Planner::MinimalState, list<Planner::FFEvent> > & solution)
 {
 	Planner::FF::WAStar = false;
 	set<int> goals;
@@ -281,7 +286,7 @@ std::pair<Planner::MinimalState, list<Planner::FFEvent> > TRH::reprocessPlan(lis
 			currSQI->state()->startEventQueue, 0, currSQI->state()->entriesForAction, 
 			0, 0, &(currSQI->state()->tilComesBefore), Planner::FF::scheduleToMetric);
 		//Check if it is valid
-		if (!tryToSchedule.isSolved()) return std::pair<Planner::MinimalState, list<Planner::FFEvent> >();
+		if (!tryToSchedule.isSolved()) return false;
 	}
 
 	list<Planner::FFEvent*>::const_iterator oldSolnItr = sortedSoln.begin();
@@ -315,18 +320,19 @@ std::pair<Planner::MinimalState, list<Planner::FFEvent> > TRH::reprocessPlan(lis
 		bool success = evaluateStateAndUpdatePlan(succ, nextSeg, *(succ->state()), currSQI->state(), incrementalData.get(), currSQI->plan);
 		if (!success) {
 			cerr << "Something went wrong replaying plan." << endl;
+			// cerr << "Failed applying: " << PDDL::getOperatorName(nextSeg.first) 
+			//      << "-" << nextSeg.second << endl;
 			assert(false);
+			return false;
 		}
 		// Planner::FFEvent::printPlan(succ->plan);
 		delete currSQI;
 		currSQI = succ.release();
-
 	}
-	std::pair<Planner::MinimalState, list<Planner::FFEvent> > toReturn(
-		currSQI->state()->getInnerState(), currSQI->plan);
+	solution = std::make_pair(currSQI->state()->getInnerState(), currSQI->plan);
 
 	delete currSQI;
-	return toReturn;
+	return true;
 }
 
 bool TRH::evaluateStateAndUpdatePlan(auto_ptr<Planner::SearchQueueItem> & succ, 

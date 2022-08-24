@@ -45,7 +45,7 @@ public:
 };
 
 	std::ostream & operator<<(std::ostream & output,
-				const Util::triple<const Planner::FFEvent *, double> & edge);
+		const Util::triple<const Planner::FFEvent *, double> & edge);
 
 }
 
