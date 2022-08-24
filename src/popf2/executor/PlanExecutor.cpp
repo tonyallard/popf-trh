@@ -62,7 +62,9 @@ void PlanExecutor::updateEventTimings(
 		if (d[i][i] < -stn::ColinSTNImpl::ACCURACY) {
 			cerr << "Inconsistent STN found while dispatching (" << d[i][i] << ")." << endl;
 		}
-		event->lpTimestamp = d[initialEvtIdx][i];
+		event->lpTimestamp =  d[i][initialEvtIdx] != 0 ? -d[i][initialEvtIdx] : d[i][initialEvtIdx];
+		event->lpMinTimestamp = -d[i][initialEvtIdx];
+		event->lpMaxTimestamp = d[initialEvtIdx][i];
 	}
 
 }
