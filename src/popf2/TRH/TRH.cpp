@@ -37,9 +37,11 @@ double TRH::TIME_SPENT_IN_SUBPLANNER = 0.0;
 double TRH::TIME_SPENT_IN_PRINTING_TO_FILE = 0.0;
 double TRH::TIME_SPENT_CONVERTING_PDDL_STATE = 0.0;
 int TRH::STATES_EVALUATED_IN_HEURISTIC = 0;
+int TRH::DEADENDS_ENCOUNTERED_IN_HEURISTIC = 0;
 int TRH::CURRENT_SEARCH_DEPTH = 0;
 int TRH::CURRENT_RELAXED_PLAN_LENGTH = 0;
 int TRH::initialState_HeuristicStateEvals = -1;
+int TRH::initialState_DeadEndsEncountered = 0;
 double TRH::initialState_HeuristicCompTime = 0.0;
 bool TRH::EARLY_TERMINATION = true;
 int TRH::HEURISTIC_MODE = 0;
@@ -88,17 +90,19 @@ pair<double, int> TRH::getHeuristic(Planner::ExtendedMinimalState & theState,
 	//Read in the results of the relaxed plan
 	PlannerExecutionReader reader(result, tempProb.first.getTILs(), state, timestamp);
 	TRH::STATES_EVALUATED_IN_HEURISTIC += reader.getHeuristicStatesEvaluated();
+	TRH::DEADENDS_ENCOUNTERED_IN_HEURISTIC += reader.getDeadEndsEncountered();
 
 	if ((Planner::Globals::globalVerbosity & 1) && (initialState_HeuristicStateEvals < 0)) {
 		//Record details of initial state
     	TRH::initialState_HeuristicStateEvals = TRH::STATES_EVALUATED_IN_HEURISTIC;
     	TRH::initialState_HeuristicCompTime = TRH::TRH::TIME_SPENT_IN_SUBPLANNER;
+		TRH::initialState_DeadEndsEncountered = TRH::DEADENDS_ENCOUNTERED_IN_HEURISTIC;
         cout << "#; Initial State - time spent in sub-planner: " << std::setprecision(9) 
         	<< TRH::initialState_HeuristicCompTime << "s." << endl;
         cout << "#; Initial State - heuristic states evaluated: " 
         	<< TRH::initialState_HeuristicStateEvals << endl;
         cout << "#; Initial State - dead ends encountered: " 
-        	<< reader.getDeadEndsEncountered() << endl;
+        	<< TRH::initialState_DeadEndsEncountered << endl;
         cout << std::setprecision(3);
     }
 

@@ -470,6 +470,7 @@ int main(int argc, char * argv[])
                 cout << ";;;; Solution Found\n";
               	cout << "#; States evaluated: " << Planner::FF::STATES_EVALUATED << endl;
                 cout << "#; Heuristic States Evaluated: " << TRH::TRH::STATES_EVALUATED_IN_HEURISTIC << endl;
+                cout << "#; Heuristic Deadends Encountered: " << TRH::TRH::DEADENDS_ENCOUNTERED_IN_HEURISTIC << endl;
                 cout << "#; Time spent converting PDDL state: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_CONVERTING_PDDL_STATE << "s." << endl;
                 cout << "#; Time spent printing state to file: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_PRINTING_TO_FILE << "s." << endl;
                 cout << "#; Time spent in subplanner: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_SUBPLANNER << "s." << endl;
@@ -500,6 +501,7 @@ int main(int argc, char * argv[])
         cout << ";; Problem unsolvable!\n";
         cout << "#; States evaluated: " << Planner::FF::STATES_EVALUATED << endl;
         cout << "#; Heuristic States Evaluated: " << TRH::TRH::STATES_EVALUATED_IN_HEURISTIC << endl;
+        cout << "#; Heuristic Deadends Encountered: " << TRH::TRH::DEADENDS_ENCOUNTERED_IN_HEURISTIC << endl;
         cout << "#; Time spent converting PDDL state: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_CONVERTING_PDDL_STATE << "s." << endl;
         cout << "#; Time spent printing state to file: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_PRINTING_TO_FILE << "s." << endl;
         cout << "#; Time spent in subplanner: " << std::setprecision(9) << TRH::TRH::TIME_SPENT_IN_SUBPLANNER << "s." << endl;
